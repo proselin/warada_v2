@@ -8,5 +8,5 @@ pluginManagement {
         id "${quarkusPluginId}" version "${quarkusPluginVersion}"
     }
 }
-rootProject.name = 'template'
+rootProject.name = 'warada_v2'
 include 'application', 'commons', 'configurations', 'db-entities', 'repositories', 'services', 'resources'

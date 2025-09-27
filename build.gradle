@@ -4,7 +4,7 @@ plugins {
 }
 
 allprojects {
-    group = 'com.github.template'
+    group = 'com.github.warada_v2'
     version = '1.0-SNAPSHOT'
 }
 

@@ -1,4 +1,4 @@
-package com.github.template;
+package com.github.warada_v2;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
