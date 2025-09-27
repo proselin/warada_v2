@@ -1,0 +1,96 @@
+quarkus:
+  application:
+    name: TemplateV1
+    version: 1.0.0
+
+  liquibase:
+    migrate-at-start: true
+    change-log: db/migration/db-changelog-master.yaml
+
+  profile: dev
+
+  datasource:
+    db-kind: postgresql
+    username: postgres
+    password: postgres
+    jdbc:
+      url: ${DB_URL:jdbc:postgresql://localhost:4321/postgres}
+
+  index-dependency:
+    commons:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: commons
+    configurations:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: configurations
+    db-entities:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: db-entities
+    repositories:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: repositories
+    resources:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: resources
+    services:
+      group-id: ${quarkus.application.group-id:com.github.template}
+      artifact-id: services
+
+
+
+  hibernate-orm:
+    database:
+      schema-management:
+        strategy: update
+    log:
+      sql: true
+
+  log:
+    level: INFO
+    category:
+      "com.github.template": DEBUG
+
+  micrometer:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+
+"%dev":
+  quarkus:
+#    package:
+#      type: fast-jar
+    package:
+      jar:
+        enabled: true
+        type: fast-jar
+    native:
+      enabled: false
+      sources-only: false
+
+    liquibase:
+      migrate-at-start: true
+      change-log: db/migration/db-changelog-master.yaml
+
+"%prod":
+  quarkus:
+    profile: prod
+
+    package:
+      jar:
+        enabled: false
+        type: fast-jar
+
+    native:
+      enabled: true
+      sources-only: false
+
+    liquibase:
+      migrate-at-start: true
+      change-log: db/migration/db-changelog-master.yaml

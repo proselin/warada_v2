@@ -1,0 +1,12 @@
+plugins {
+    id 'java'
+}
+dependencies {
+    implementation project(':commons')
+    implementation project(':repositories')
+    implementation project(':configurations')
+
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-rest-client'
+}

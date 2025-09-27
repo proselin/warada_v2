@@ -1,0 +1,10 @@
+plugins {
+    id 'java'
+}
+dependencies {
+    implementation project(':commons')
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-jackson'
+    implementation 'io.quarkus:quarkus-jdbc-postgresql'
+}
