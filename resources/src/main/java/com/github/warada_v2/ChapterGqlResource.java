@@ -17,12 +17,12 @@ public class ChapterGqlResource {
     @Inject
     ChapterService chapterService;
 
-    @Query("chapter-by-id")
+    @Query("detailChapterById")
     public Chapter getChapterById(Long id) {
         return chapterService.getChapterById(id);
     }
 
-    @Query("chapter-by-slug")
+    @Query("detailChapterBySlug")
     public Chapter getChapterBySlug(String slug) {
         return chapterService.getChapterBySlug(slug);
     }
