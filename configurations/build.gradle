@@ -1,6 +1,3 @@
-plugins {
-    id 'java'
-}
 dependencies {
-    implementation 'io.quarkus:quarkus-arc'
+    implementation project(':commons')
 }

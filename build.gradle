@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'io.quarkus'
+    id 'io.quarkus' apply false
 }
 
 allprojects {
@@ -10,7 +10,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'io.quarkus'
 
     repositories {
         mavenCentral()
@@ -19,6 +18,10 @@ subprojects {
 
     dependencies {
         implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+
+        /**
+         * Lombok for all modules
+         */
         compileOnly("org.projectlombok:lombok:1.18.42")
         annotationProcessor("org.projectlombok:lombok:1.18.42")
         testCompileOnly("org.projectlombok:lombok:1.18.42")

@@ -1,11 +1,9 @@
 package com.github.warada_v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -63,3 +61,7 @@ public class Chapter {
     @JsonIgnore
     private List<Image> images = new ArrayList<>();
 }
+
+
+
+

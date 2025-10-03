@@ -1,6 +1,3 @@
-plugins {
-    id 'java'
-}
 dependencies {
     implementation project(':commons')
     implementation project(':repositories')
@@ -10,4 +7,5 @@ dependencies {
     implementation 'io.quarkus:quarkus-arc'
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-rest-client'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache'
 }

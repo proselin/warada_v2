@@ -1,0 +1,22 @@
+quarkus:
+  config:
+    profile:
+      parent: default
+
+  package:
+    jar:
+      enabled: false
+      type: fast-jar
+
+  native:
+    enabled: true
+    sources-only: false
+    container-build: true
+
+  liquibase:
+    migrate-at-start: true
+    change-log: db/migration/db-changelog-master.yaml
+
+  log:
+    level: INFO
+

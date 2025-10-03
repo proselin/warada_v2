@@ -1,7 +1,8 @@
 quarkus:
   application:
-    name: warada_v2V1
+    name: warada_v2
     version: 1.0.0
+    group-id: com.github.warada_v2
 
   liquibase:
     migrate-at-start: true
@@ -14,7 +15,7 @@ quarkus:
     username: postgres
     password: postgres
     jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:4321/postgres}
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
 
   index-dependency:
     commons:
@@ -44,11 +45,6 @@ quarkus:
     log:
       sql: true
 
-  log:
-    level: INFO
-    category:
-      "com.github.warada_v2": DEBUG
-
   micrometer:
     enabled: true
     export:
@@ -77,52 +73,8 @@ management:
 
 "%dev":
   quarkus:
-#    package:
-#      type: fast-jar
-    package:
-      jar:
-        enabled: true
-        type: uber-jar
-#
-#    native:
-#      enabled: false
-#      container-build: false
-
-    log:
-      level: ALL
-
-    smallrye-graphql:
-      ui:
-        enabled: true                    # Enable GraphQL UI
-        always-include: true
-      schema-available: true           # Make schema available at /q/graphql/schema.graphql
-      metrics:
-        enabled: true
-      tracing:
-        enabled: true
-      # Schema location
-      schema-include-scalars: true
-      schema-include-directives: true
-      log-payload: queryAndVariables  # For debugging
-
-    liquibase:
-      migrate-at-start: true
-      change-log: db/migration/db-changelog-master.yaml
+    profile: dev
 
 "%prod":
   quarkus:
     profile: prod
-
-    package:
-      jar:
-        enabled: false
-        type: fast-jar
-
-    native:
-      enabled: true
-      sources-only: false
-      container-build: true
-
-    liquibase:
-      migrate-at-start: true
-      change-log: db/migration/db-changelog-master.yaml
