@@ -1,6 +1,0 @@
-dependencies {
-    implementation project(':commons')
-    implementation project(':repositories')
-    implementation project(':db-entities')
-    implementation project(':configurations')
-}

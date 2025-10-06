@@ -9,4 +9,3 @@ pluginManagement {
     }
 }
 rootProject.name = 'warada_v2'
-include 'application', 'commons', 'configurations', 'db-entities', 'repositories', 'services', 'resources'

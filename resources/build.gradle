@@ -1,8 +1,0 @@
-dependencies {
-    implementation project(':commons')
-    implementation project(':services')
-    implementation project(':db-entities')
-
-    testImplementation 'io.quarkus:quarkus-junit5'
-    testImplementation 'io.rest-assured:rest-assured'
-}
