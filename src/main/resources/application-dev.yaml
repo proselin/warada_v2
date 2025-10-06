@@ -2,6 +2,8 @@ quarkus:
   config:
     profile:
       parent: default
+jvm:
+  args: -XX:StartFlightRecording=name=quarkus,dumponexit=true,filename=myrecording.jfr
 
   package:
     jar:
@@ -28,6 +30,9 @@ quarkus:
     schema-include-scalars: true
     schema-include-directives: true
     log-payload: queryAndVariables  # For debugging
+
+  otel:
+    enabled: false
 
   liquibase:
     migrate-at-start: true

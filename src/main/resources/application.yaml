@@ -45,12 +45,6 @@ quarkus:
     log:
       sql: true
 
-  micrometer:
-    enabled: true
-    export:
-      prometheus:
-        enabled: true
-
   smallrye-graphql:
     ui:
       enabled: true                    # Enable GraphQL UI

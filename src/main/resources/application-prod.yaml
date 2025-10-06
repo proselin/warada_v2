@@ -17,6 +17,20 @@ quarkus:
     migrate-at-start: true
     change-log: db/migration/db-changelog-master.yaml
 
+  otel:
+    enabled: true
+    metrics:
+      enabled: true
+    logs:
+      enabled: true
+    traces:
+      enabled: true
+    exporter:
+      otlp:
+        endpoint: ${OTLP_ENDPOINT}
+
   log:
     level: INFO
+#    console:
+#      format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
 

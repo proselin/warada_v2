@@ -21,6 +21,6 @@ public class ChapterRepository implements PanacheRepository<Chapter> {
     }
 
     public List<Chapter> findByComicId(Long comicId, Sort sort, Page page) {
-        return find("comicId = ?1", comicId, sort, page).list();
+        return find("comic.id = ?1", sort, comicId).page(page).list();
     }
 }
