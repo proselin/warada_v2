@@ -14,7 +14,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-jfr'
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
     /**
@@ -38,7 +37,11 @@ dependencies {
     implementation 'io.quarkus:quarkus-smallrye-health'
     implementation "io.quarkus:quarkus-opentelemetry"
     implementation "io.quarkus:quarkus-jfr"
+    implementation 'io.quarkus:quarkus-jfr'
+    implementation 'io.quarkus:quarkus-rest-client'
+    implementation 'io.quarkus:quarkus-rest-client-jackson'
 
+    implementation 'io.quarkiverse.minio:quarkus-minio-native:3.8.6'
     implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 }

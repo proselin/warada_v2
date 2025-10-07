@@ -21,4 +21,5 @@ public class ComicService {
     public Comic findById(Long id) {
         return comicRepository.findByIdOptional(id).orElseThrow(NotFoundException::new);
     }
+
 }

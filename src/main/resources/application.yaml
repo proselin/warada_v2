@@ -15,7 +15,7 @@ quarkus:
     username: postgres
     password: postgres
     jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:4321/postgres}
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
 
   index-dependency:
     commons:
@@ -39,9 +39,6 @@ quarkus:
 
 
   hibernate-orm:
-    database:
-      schema-management:
-        strategy: update
     log:
       sql: true
 
@@ -67,8 +64,110 @@ management:
 
 "%dev":
   quarkus:
-    profile: dev
+
+    native:
+      enabled: true
+      container-build: false
+
+    log:
+      level: INFO
+
+    smallrye-graphql:
+      ui:
+        enabled: true
+        always-include: true
+      schema-available: true
+      metrics:
+        enabled: true
+      tracing:
+        enabled: true
+      # Schema location
+      schema-include-scalars: true
+      schema-include-directives: true
+      log-payload: queryAndVariables  # For debugging
+
+    otel:
+      enabled: false
+
+    liquibase:
+      migrate-at-start: true
+      change-log: db/migration/db-changelog-master.yaml
+
+    rest-client:
+      nettruyen:
+        url: https://nettruyenar.com
+
+  minio:
+    secure: ${MINIO_SECURE:false}
+    access-key: ${MINIO_ACCESS_KEY:""}
+    secret-key: ${MINIO_SECRET_KEY:""}
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+
+
+  warada:
+    bucket-name: warada-images
+    view-host: http://localhost:4200
 
 "%prod":
   quarkus:
-    profile: prod
+
+    package:
+      jar:
+        enabled: false
+        type: fast-jar
+
+    native:
+      enabled: true
+      sources-only: false
+      container-build: true
+
+    liquibase:
+      migrate-at-start: true
+      change-log: db/migration/db-changelog-master.yaml
+
+    smallrye-graphql:
+      ui:
+        enabled: false
+        always-include: false
+      schema-available: true
+      metrics:
+        enabled: true
+      tracing:
+        enabled: true
+      # Schema location
+      schema-include-scalars: true
+      schema-include-directives: true
+      log-payload: off
+
+    otel:
+      enabled: true
+      metrics:
+        enabled: true
+      logs:
+        enabled: true
+      traces:
+        enabled: true
+      exporter:
+        otlp:
+          endpoint: ${OTLP_ENDPOINT}
+
+    log:
+      level: INFO
+    #    console:
+    #      format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
+
+
+  warada:
+    bucket-name: warada-images
+    nettruyen:
+      base-url: https://www.nettruyenar.com
+      api-url: https://www.nettruyenar.com
+      chapters-url: https://www.nettruyenar.com/Comic/Services/ComicService.asmx/ChapterList
+      search-url: https://www.nettruyenar.com/Comic/Services/SuggestSearch.ashx
+    view-host: http://localhost:4200
+
+  minio:
+    secure: ${MINIO_SECURE:false}
+    access-key: ${MINIO_ACCESS_KEY:""}
+    secret-key: ${MINIO_SECRET_KEY:""}
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
