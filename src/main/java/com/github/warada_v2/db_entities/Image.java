@@ -1,16 +1,22 @@
 package com.github.warada_v2.db_entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.warada_v2.commons.enums.ImageType;
+import com.github.warada_v2.converter.ImageTypeConverter;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "images")
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 public class Image {
 
     @Id
@@ -26,16 +32,17 @@ public class Image {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column(name= "file_name")
+    @Column(name = "file_name")
     private String fileName;
 
     @Column()
     private Integer position;
 
-    @Column()
-    private String type;
+    @Convert(converter = ImageTypeConverter.class)
+    @Column(name = "type")
+    private ImageType type;
 
-    @Column(name = "origin_url")
+    @Column(name = "origin_url", unique = true)
     private String originUrl;
 
     @OneToOne(mappedBy = "thumbImage")
@@ -47,3 +54,4 @@ public class Image {
     @JsonIgnore
     private Chapter chapter;
 }
+

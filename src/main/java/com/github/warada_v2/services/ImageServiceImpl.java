@@ -1,19 +1,16 @@
 package com.github.warada_v2.services;
 
-import io.minio.MinioClient;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.jbosslog.JBossLog;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Slf4j
+@JBossLog
 @ApplicationScoped
-public class ImageMinioServices {
-
+public class ImageServiceImpl implements ImageService {
     @ConfigProperty(name = "warada.bucket-name")
     String bucketName;
 
-    public ImageMinioServices() {
+    public ImageServiceImpl() {
         log.info("Creating Minio Client");
         log.info(bucketName);
     }

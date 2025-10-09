@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ExtractedChapterListDto {
+public class ExtractedChaptersDto {
 
     @JsonProperty("data")
     public List<ChapterItem> data;
@@ -55,5 +55,7 @@ public class ExtractedChapterListDto {
 
         @JsonProperty("image_num")
         public int imageNum;
+
+        public String originPathParams;
     }
 }

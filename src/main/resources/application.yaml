@@ -1,4 +1,9 @@
 quarkus:
+  arc:
+    dev-mode:
+      generate-dependency-graphs: true
+      monitoring-enabled: true
+
   application:
     name: warada_v2
     version: 1.0.0
@@ -9,7 +14,6 @@ quarkus:
     change-log: db/migration/db-changelog-master.yaml
 
   profile: dev
-
   datasource:
     db-kind: postgresql
     username: postgres
@@ -99,14 +103,14 @@ management:
 
   minio:
     secure: ${MINIO_SECURE:false}
-    access-key: ${MINIO_ACCESS_KEY:""}
-    secret-key: ${MINIO_SECRET_KEY:""}
+    access-key: ${MINIO_ACCESS_KEY:4Vzg7fHEbwupPWMfTbew}
+    secret-key: ${MINIO_SECRET_KEY:FkK9N3OwUg6Gm8gokdKMvFSyfryvGtl47RzY46YL}
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
 
-
   warada:
-    bucket-name: warada-images
-    view-host: http://localhost:4200
+    nettruyen:
+      url: https://www.nettruyenar.com
+    image-bucket: warada-images
 
 "%prod":
   quarkus:
@@ -158,13 +162,9 @@ management:
 
 
   warada:
-    bucket-name: warada-images
     nettruyen:
-      base-url: https://www.nettruyenar.com
-      api-url: https://www.nettruyenar.com
-      chapters-url: https://www.nettruyenar.com/Comic/Services/ComicService.asmx/ChapterList
-      search-url: https://www.nettruyenar.com/Comic/Services/SuggestSearch.ashx
-    view-host: http://localhost:4200
+      url: https://www.nettruyenar.com
+    image-bucket: warada-images
 
   minio:
     secure: ${MINIO_SECURE:false}
