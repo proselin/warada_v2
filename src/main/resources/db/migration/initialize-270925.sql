@@ -19,7 +19,7 @@ CREATE TABLE comics
     title              varchar(255),                       -- Comic title
     author             varchar(255),                       -- Author name
     description        text,                               -- Comic description or summary
-    tags               varchar(255),                       -- Comma-separated list of tags/genres
+    tags               varchar(1000),                      -- Comma-separated list of tags/genres
     status             varchar(255) NOT NULL,              -- Current publication status (e.g., 'ongoing', 'completed')
     chapter_count      integer,                            -- Number of chapters
     crawling_status    varchar(255) NOT NULL,              -- Crawl progress status (e.g., 'pending', 'done', 'error')
@@ -60,14 +60,15 @@ CREATE TABLE chapters
 
 CREATE TABLE images
 (
-    id          bigint       NOT NULL PRIMARY KEY,        -- Unique image ID (from image_id_seq)
-    chapter_id  bigint       UNIQUE,                      -- Reference to the chapter this image belongs to
-    position    integer,                                  -- Page order within the chapter
-    file_name   varchar(255) UNIQUE,                      -- Saved file name (e.g., 'page_01.webp')
-    origin_url  varchar(255) UNIQUE,                      -- Original image URL from the source
-    type        varchar(255),                             -- Image type (e.g., 'webp', 'jpg', 'png')
-    created_at  timestamp(6),                             -- When this record was inserted
-    updated_at  timestamp(6)                             -- Last modification timestamp
+    id          bigint        NOT NULL PRIMARY KEY,        -- Unique image ID (from image_id_seq)
+    chapter_id  bigint        UNIQUE,                      -- Reference to the chapter this image belongs to
+    position    integer,                                   -- Page order within the chapter
+    file_name   varchar(1000) UNIQUE,                      -- Saved file name (e.g., 'page_01.webp')
+    file_path   varchar(1000) UNIQUE,                      -- Saved file path (e.g., 'temp/page_01.webp')
+    origin_url  varchar(255)  UNIQUE,                      -- Original image URL from the source
+    type        varchar(255),                              -- Image type (e.g., 'thumb', 'chapter-image')
+    created_at  timestamp(6),                              -- When this record was inserted
+    updated_at  timestamp(6)                               -- Last modification timestamp
 );
 
 -- ============================================================

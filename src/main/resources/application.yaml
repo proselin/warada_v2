@@ -111,6 +111,11 @@ management:
     nettruyen:
       url: https://www.nettruyenar.com
     image-bucket: warada-images
+    image-bucket-temp-path: temp
+    image-bucket-images-path: images
+    clean-up:
+      enabled: true
+      min-age-minutes: 5
 
 "%prod":
   quarkus:
@@ -165,6 +170,11 @@ management:
     nettruyen:
       url: https://www.nettruyenar.com
     image-bucket: warada-images
+    image-bucket-temp-path: temp
+    image-bucket-images-path: images
+    clean-up:
+      enabled: true
+      min-age-minutes: 5
 
   minio:
     secure: ${MINIO_SECURE:false}

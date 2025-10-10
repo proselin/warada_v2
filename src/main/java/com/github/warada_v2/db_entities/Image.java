@@ -35,6 +35,9 @@ public class Image {
     @Column(name = "file_name")
     private String fileName;
 
+    @Column(name = "file_path")
+    private String filePath;
+
     @Column()
     private Integer position;
 

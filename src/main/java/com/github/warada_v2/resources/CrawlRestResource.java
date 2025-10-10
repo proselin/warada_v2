@@ -21,7 +21,7 @@ public class CrawlRestResource {
     @POST
     @Path("/comic/nettruyen")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response crawlIndividualComic(@RequestBody CrawlNettruyenRequest request) {
+    public Response crawlIndividualComic(@RequestBody CrawlNettruyenRequest request) throws Exception {
         crawlService.crawlNettruyenComic(request.getSlugNId());
         return Response.ok("Success").build();
     }

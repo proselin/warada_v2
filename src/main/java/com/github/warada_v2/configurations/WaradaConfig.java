@@ -11,6 +11,14 @@ public interface WaradaConfig {
         String url();
     }
 
+    String imageBucketTempPath();
+    String imageBucketImagesPath();
+    CleanUpTempImages cleanUp();
+
+    interface CleanUpTempImages {
+        Integer minAgeMinutes();
+        Boolean enabled();
+    }
 }
 
 
