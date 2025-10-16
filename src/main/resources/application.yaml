@@ -42,10 +42,6 @@ quarkus:
       artifact-id: services
 
 
-  hibernate-orm:
-    log:
-      sql: true
-
   smallrye-graphql:
     ui:
       enabled: true                    # Enable GraphQL UI
@@ -75,6 +71,14 @@ management:
 
     log:
       level: INFO
+      category:
+        org.jboss.resteasy.reactive.client.logging:
+          level: DEBUG
+
+
+    hibernate-orm:
+      log:
+        sql: false
 
     smallrye-graphql:
       ui:
@@ -98,6 +102,9 @@ management:
       change-log: db/migration/db-changelog-master.yaml
 
     rest-client:
+      logging:
+        scope: request-response
+        body-limit: 1024
       nettruyen:
         url: https://nettruyenar.com
 
@@ -109,7 +116,7 @@ management:
 
   warada:
     nettruyen:
-      url: https://www.nettruyenar.com
+      url: https://nettruyenar.com
     image-bucket: warada-images
     image-bucket-temp-path: temp
     image-bucket-images-path: images
@@ -184,10 +191,10 @@ management:
       min-age-minutes: 5
 
   minio:
-    secure: ${MINIO_SECURE:false}
-    access-key: ${MINIO_ACCESS_KEY:""}
-    secret-key: ${MINIO_SECRET_KEY:""}
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    secure: ${MINIO_SECURE}
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+    endpoint: ${MINIO_ENDPOINT}
 
 "%test-native":
   quarkus:

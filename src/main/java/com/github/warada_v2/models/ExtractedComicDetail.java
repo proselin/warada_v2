@@ -5,7 +5,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
-public record NettruyenExtractorResult(
+public record ExtractedComicDetail(
         ExtractedNettruyenComic comic,
         ExtractedChapters chapters,
         ExtractedThumbImage thumbImage

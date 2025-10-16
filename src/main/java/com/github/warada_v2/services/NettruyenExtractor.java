@@ -1,7 +1,9 @@
 package com.github.warada_v2.services;
 
-import com.github.warada_v2.models.NettruyenExtractorResult;
+import com.github.warada_v2.models.ExtractedChapterDetail;
+import com.github.warada_v2.models.ExtractedComicDetail;
 
 public interface NettruyenExtractor {
-    NettruyenExtractorResult extract(String url);
+    ExtractedComicDetail extractComicDetail(String slug);
+    ExtractedChapterDetail extractChapterDetail(String slug);
 }

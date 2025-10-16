@@ -40,7 +40,8 @@ public record ExtractedChapters(
             @JsonProperty("image_num") int imageNum,
 
             // not in the source JSON (your own field)
-            @With String originPathParams
+            @With String originPathParams,
+            @With String originUrl
     ) {
     }
 }

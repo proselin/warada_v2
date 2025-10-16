@@ -24,7 +24,7 @@ CREATE TABLE comics
     chapter_count      integer,                            -- Number of chapters
     crawling_status    varchar(255) NOT NULL,              -- Crawl progress status (e.g., 'pending', 'done', 'error')
     origin_id          varchar(255) UNIQUE,                -- Original ID from source website
-    origin_url         varchar(255) UNIQUE,                -- Original URL from source website
+    origin_url         varchar(500) UNIQUE,                -- Original URL from source website
     origin_path_params varchar(500),                       -- Extracted path segment (for exact matching)
     thumb_image_id     bigint       UNIQUE,                -- Reference to cover/thumbnail image
     created_at         timestamp(6),                       -- Record creation timestamp
@@ -45,7 +45,7 @@ CREATE TABLE chapters
     position           integer,                            -- Chapter order within the comic
     crawling_status    varchar(255),                       -- Crawl progress (e.g., 'pending', 'done', 'error')
     type               varchar(255),                       -- Type of chapter (e.g., 'main', 'extra')
-    source_url         varchar(255) UNIQUE,                -- Original URL for this chapter
+    origin_url         varchar(500) UNIQUE,                -- Original URL for this chapter
     origin_path_params varchar(500) UNIQUE,                -- Extracted path parameters from URL
     created_at         timestamp(6),                       -- When this record was inserted
     updated_at         timestamp(6)                        -- Last modification timestamp
@@ -61,11 +61,11 @@ CREATE TABLE chapters
 CREATE TABLE images
 (
     id          bigint        NOT NULL PRIMARY KEY,        -- Unique image ID (from image_id_seq)
-    chapter_id  bigint        UNIQUE,                      -- Reference to the chapter this image belongs to
+    chapter_id  bigint,                                    -- Reference to the chapter this image belongs to
     position    integer,                                   -- Page order within the chapter
     file_name   varchar(1000) UNIQUE,                      -- Saved file name (e.g., 'page_01.webp')
     file_path   varchar(1000) UNIQUE,                      -- Saved file path (e.g., 'temp/page_01.webp')
-    origin_url  varchar(255)  UNIQUE,                      -- Original image URL from the source
+    origin_url  varchar(500)  UNIQUE,                      -- Original image URL from the source
     type        varchar(255),                              -- Image type (e.g., 'thumb', 'chapter-image')
     created_at  timestamp(6),                              -- When this record was inserted
     updated_at  timestamp(6)                               -- Last modification timestamp

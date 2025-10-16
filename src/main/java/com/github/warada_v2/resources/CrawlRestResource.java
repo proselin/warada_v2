@@ -1,15 +1,16 @@
 package com.github.warada_v2.resources;
 
-import com.github.warada_v2.models.CrawlNettruyenRequest;
+import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
+import com.github.warada_v2.models.CrawlNettruyenComicRequest;
 import com.github.warada_v2.services.CrawlService;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.jbosslog.JBossLog;
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 
 @JBossLog
 @Path("/api/v1/crawl")
@@ -19,10 +20,20 @@ public class CrawlRestResource {
     CrawlService crawlService;
 
     @POST
-    @Path("/comic/nettruyen")
+    @Path("/nettruyen/comic")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response crawlIndividualComic(@RequestBody CrawlNettruyenRequest request) throws Exception {
-        crawlService.crawlNettruyenComic(request.getSlugNId());
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response crawlIndividualComic(CrawlNettruyenComicRequest request) throws Exception {
+        crawlService.crawlNettruyenComic(request.slugNId());
+        return Response.ok("Success").build();
+    }
+
+    @POST
+    @Path("/nettruyen/chapter")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response crawlChapter(CrawlNettruyenChapterRequest request) throws Exception {
+        crawlService.crawlNettruyenChapter(request.chapterId());
         return Response.ok("Success").build();
     }
 }

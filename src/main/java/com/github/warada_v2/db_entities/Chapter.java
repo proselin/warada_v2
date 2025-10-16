@@ -36,8 +36,8 @@ public class Chapter {
     @Column(name = "chapter_num")
     private String chapterNumber;
 
-    @Column(name = "source_url", unique = true)
-    private String sourceUrl;
+    @Column(name = "origin_url", unique = true)
+    private String originUrl;
 
     @Column(name = "origin_path_params", unique = true)
     private String originPathParams;

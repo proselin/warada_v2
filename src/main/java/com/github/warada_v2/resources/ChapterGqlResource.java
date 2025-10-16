@@ -1,6 +1,6 @@
 package com.github.warada_v2.resources;
 
-import com.github.warada_v2.db_entities.Chapter;
+import com.github.warada_v2.models.ChapterDetailGql;
 import com.github.warada_v2.models.PageRequest;
 import com.github.warada_v2.services.ChapterService;
 import jakarta.inject.Inject;
@@ -17,17 +17,17 @@ public class ChapterGqlResource {
     ChapterService chapterService;
 
     @Query("detailChapterById")
-    public Chapter getChapterById(Long id) {
-        return chapterService.getChapterById(id);
+    public ChapterDetailGql getChapterById(Long id) {
+        return ChapterDetailGql.fromEntity(chapterService.getChapterById(id));
     }
 
     @Query("detailChapterBySlug")
-    public Chapter getChapterBySlug(String slug) {
-        return chapterService.getChapterBySlug(slug);
+    public ChapterDetailGql getChapterBySlug(String slug) {
+        return ChapterDetailGql.fromEntity(chapterService.getChapterBySlug(slug));
     }
 
     @Query("chapters")
-    public List<Chapter> pageableChapterByComicId(Long comicId, PageRequest pageRequest) {
-        return chapterService.pageableChapterByComicId(comicId, pageRequest);
+    public List<ChapterDetailGql> pageableChapterByComicId(Long comicId, PageRequest pageRequest) {
+        return ChapterDetailGql.fromEntities(chapterService.pageableChapterByComicId(comicId, pageRequest));
     }
 }
