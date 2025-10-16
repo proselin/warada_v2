@@ -3,8 +3,8 @@ package com.github.warada_v2.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.warada_v2.configurations.WaradaConfig;
-import com.github.warada_v2.models.ExtractedChaptersDto;
-import com.github.warada_v2.models.ExtractedNettruyenComicContentDto;
+import com.github.warada_v2.models.ExtractedChapters;
+import com.github.warada_v2.models.ExtractedNettruyenComic;
 import com.github.warada_v2.models.ExtractedThumbImage;
 import com.github.warada_v2.models.NettruyenExtractorResult;
 import com.github.warada_v2.rest.client.NettruyenRestService;
@@ -53,38 +53,40 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
   public NettruyenExtractorResult extract(String url) {
     log.info("Extracting Nettruyen from URL: " + url);
     String content = getComicContent(url);
-    var result = new NettruyenExtractorResult();
     try {
-      ExtractedNettruyenComicContentDto comic = extractComicHtmlContent(content);
-
-      result.setComic(comic);
-      log.info("Extracted NettruyenComicContentDto: " + comic);
-      result.setChapters(getChapterList(comic.getComicId(), comic.getSlug()));
-      log.info("Extracted NettruyenChaptersDto: " + result);
-      result.setThumbImage(crawlThumbImage(comic.getImage()));
-      log.info("Extracted NettruyenThumbImage: " + result);
-
+      var comic = extractComicHtmlContent(content);
+      log.infof("Extracted NettruyenComicContentDto: %s" + comic);
+      var chapters = getChapterList(comic.comicId(), comic.slug());
+      log.infof("Extracted NettruyenChaptersDto: %s ", chapters);
+      var thumbImage = crawlThumbImage(comic.image());
+      log.infof("Extracted NettruyenThumbImage: %s" ,thumbImage);
+      return new NettruyenExtractorResult(comic, chapters, thumbImage);
     } catch (Exception e) {
       log.error("Error extracting Nettruyen from URL: " + url, e);
       throw e;
     }
-    return result;
+
   }
 
-  public ExtractedChaptersDto getChapterList(Long comicId, String slug) {
+  public ExtractedChapters getChapterList(Long comicId, String slug) {
     log.info("Getting ChapterList with slug: " + slug + " from comicId: " + comicId);
     var response = nettruyenRestService.getComicChapterList(slug, comicId);
-    var results = response.readEntity(ExtractedChaptersDto.class);
+    var results = response.readEntity(ExtractedChapters.class);
     // Add Path Params field to each chapter
-    results.data.forEach(
-        chapter -> {
-          chapter.originPathParams =
-              generateChapterPathParams(slug, chapter.chapterSlug, chapter.chapterId);
-        });
+    results = results.withData(
+            results.data()
+        .stream().map(
+            chapter -> chapter.withOriginPathParams(
+                    generateChapterPathParams(
+                            slug,
+                            chapter.chapterSlug(),
+                            chapter.chapterId()
+                    )
+            )).toList());
     return results;
   }
 
-  public ExtractedNettruyenComicContentDto extractComicHtmlContent(String html) {
+  public ExtractedNettruyenComic extractComicHtmlContent(String html) {
     Matcher m = LD_JSON_PATTERN.matcher(html);
 
     String slug = findGroup(SLUG_P, html, 2);
@@ -99,7 +101,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
       }
     }
 
-    ExtractedNettruyenComicContentDto result = null;
+    ExtractedNettruyenComic result = null;
 
     while (m.find()) {
       String json = m.group(1).trim();
@@ -109,7 +111,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
         JsonNode root = mapper.readTree(json);
         for (JsonNode node : flattenJsonLd(root)) {
           if (hasType(node, "ComicSeries")) {
-            result = mapper.treeToValue(node, ExtractedNettruyenComicContentDto.class);
+            result = mapper.treeToValue(node, ExtractedNettruyenComic.class);
           }
         }
       } catch (Exception exception) {
@@ -118,8 +120,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
     }
 
     assert result != null;
-    result.setSlug(slug);
-    result.setComicId(id);
+    result = result.withSlugAndComicId(slug, id);
 
     return result;
   }
@@ -146,7 +147,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
 
   private String getComicContent(String url) {
     log.info("[Client] request GET from URL: " + url);
-    var response = nettruyenRestService.getComicHtmlContent(url);
+    var response = nettruyenRestService.getContent(url);
     log.info("[Client] response GET from URL: " + url + " with code " + response.getStatus());
     return response.readEntity(String.class);
   }
@@ -164,12 +165,12 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
 
   private ExtractedThumbImage crawlThumbImage(String imageUrl) {
     log.info("Extracting thumbnail from URL: " + imageUrl);
-    var result = new ExtractedThumbImage();
-    var downloadInfoMap = downloadNSaveImage(imageUrl);
-    result.setFileName(downloadInfoMap.get("fileName"));
-    result.setOriginUrl(imageUrl);
-    result.setObjectTemp(downloadInfoMap.get("object"));
-    return result;
+      var downloadInfoMap = downloadNSaveImage(imageUrl);
+      return new ExtractedThumbImage(
+              imageUrl,
+              downloadInfoMap.get("fileName"),
+              downloadInfoMap.get("object")
+    );
   }
 
   private Map<String, String> downloadNSaveImage(String imageUrl) {

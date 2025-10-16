@@ -15,6 +15,6 @@ public class ComicRepositoryImpl implements ComicRepository {
     }
 
     public Boolean existedBySlugAndComicId(String slugAndComicId) {
-        return count("originUrl LIKE ~ ?1", slugAndComicId + "$") > 0;
+        return count("originPathParams = ?1", slugAndComicId ) > 0;
     }
 }

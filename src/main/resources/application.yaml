@@ -148,6 +148,13 @@ management:
       schema-include-directives: true
       log-payload: off
 
+    datasource:
+      db-kind: postgresql
+      username: postgres
+      password: postgres
+      jdbc:
+        url: ${DB_URL:jdbc:postgresql://postge:5432/postgres}
+
     otel:
       enabled: true
       metrics:
@@ -180,4 +187,78 @@ management:
     secure: ${MINIO_SECURE:false}
     access-key: ${MINIO_ACCESS_KEY:""}
     secret-key: ${MINIO_SECRET_KEY:""}
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+
+"%test-native":
+  quarkus:
+    package:
+      jar:
+        enabled: false
+
+    native:
+      enabled: true
+      sources-only: false
+      container-build: true
+
+    liquibase:
+      migrate-at-start: true
+      change-log: db/migration/db-changelog-master.yaml
+
+    smallrye-graphql:
+      ui:
+        enabled: false
+        always-include: false
+      schema-available: true
+      metrics:
+        enabled: true
+      tracing:
+        enabled: true
+      # Schema location
+      schema-include-scalars: true
+      schema-include-directives: true
+      log-payload: off
+
+    datasource:
+      db-kind: postgresql
+      username: postgres
+      password: postgres
+      jdbc:
+        url: ${DB_URL:jdbc:postgresql://postgres:5432/postgres}
+
+    rest-client:
+      nettruyen:
+        url: https://nettruyenar.com
+
+    otel:
+      enabled: false
+#      metrics:
+#        enabled: true
+#      logs:
+#        enabled: true
+#      traces:
+#        enabled: true
+#      exporter:
+#        otlp:
+#          endpoint: ${OTLP_ENDPOINT}
+
+    log:
+      level: INFO
+    #    console:
+    #      format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
+
+
+  warada:
+    nettruyen:
+      url: https://www.nettruyenar.com
+    image-bucket: warada-images
+    image-bucket-temp-path: temp
+    image-bucket-images-path: images
+    clean-up:
+      enabled: true
+      min-age-minutes: 5
+
+  minio:
+    secure: ${MINIO_SECURE:false}
+    access-key: ${MINIO_ACCESS_KEY:4Vzg7fHEbwupPWMfTbew}
+    secret-key: ${MINIO_SECRET_KEY:FkK9N3OwUg6Gm8gokdKMvFSyfryvGtl47RzY46YL}
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}

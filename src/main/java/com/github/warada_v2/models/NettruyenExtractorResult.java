@@ -1,10 +1,12 @@
 package com.github.warada_v2.models;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@Data
-public class NettruyenExtractorResult {
-    private ExtractedNettruyenComicContentDto comic;
-    private ExtractedChaptersDto chapters;
-    private ExtractedThumbImage thumbImage;
-}
+@JsonIgnoreProperties(ignoreUnknown = true)
+@RegisterForReflection
+public record NettruyenExtractorResult(
+        ExtractedNettruyenComic comic,
+        ExtractedChapters chapters,
+        ExtractedThumbImage thumbImage
+) {}

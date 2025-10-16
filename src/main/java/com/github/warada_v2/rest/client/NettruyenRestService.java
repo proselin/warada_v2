@@ -11,11 +11,12 @@ public interface NettruyenRestService {
     @GET
     @Path("/truyen-tranh/{slug-n-id}")
     @Produces(MediaType.TEXT_HTML)
-    Response getComicHtmlContent(@PathParam("slug-n-id") String slugNId);
+    Response getContent(@PathParam("slug-n-id") String slugNId);
 
     @GET
     @Path("/Comic/Services/ComicService.asmx/ChapterList")
     @Produces(MediaType.APPLICATION_JSON)
     Response getComicChapterList(@QueryParam("slug") String slug,
                                  @QueryParam("comicId") Long comicId);
+
 }

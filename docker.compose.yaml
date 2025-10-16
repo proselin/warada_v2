@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgres-warada-v2:
     image: postgres:latest
     ports:
       - "127.0.0.1:5432:5432"
@@ -7,3 +7,21 @@ services:
       - POSTGRES_USERNAME=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
+    networks:
+      dev-network:
+
+  test-image:
+    container_name: warada_v2-test
+    image: warada_v2:test
+    environment:
+      DB_URL: jdbc:postgresql://postgres-warada-v2:5432/postgres
+      OTLP_ENDPOINT: http://dev-otel-collector:4318
+      MINIO_ENDPOINT: http://dev-minio:9000
+    ports:
+      - "8080:8080"
+    networks:
+      dev-network:
+
+networks:
+  dev-network:
+    external: true

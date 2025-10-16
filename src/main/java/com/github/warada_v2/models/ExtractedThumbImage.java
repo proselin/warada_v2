@@ -1,15 +1,12 @@
 package com.github.warada_v2.models;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class ExtractedThumbImage {
-    private String originUrl;
-    private String fileName;
-    private String objectTemp;
-}
+@JsonIgnoreProperties(ignoreUnknown = true)
+@RegisterForReflection
+public record ExtractedThumbImage(
+        String originUrl,
+        String fileName,
+        String objectTemp
+) {}
