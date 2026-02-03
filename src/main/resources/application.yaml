@@ -173,6 +173,7 @@ management:
       exporter:
         otlp:
           endpoint: ${OTLP_ENDPOINT}
+          protocol: grpc
 
     log:
       level: INFO
