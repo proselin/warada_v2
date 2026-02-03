@@ -178,8 +178,7 @@ management:
     log:
       level: INFO
       console:
-        format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
-
+        format: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p [%c{2.}] (%t) traceId=%X{traceId} spanId=%X{spanId} sampled=%X{sampled} service=%X{service.name} - %s%e%n"
 
   warada:
     nettruyen:

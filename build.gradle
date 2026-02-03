@@ -67,3 +67,17 @@ compileJava {
 compileTestJava {
     options.encoding = 'UTF-8'
 }
+
+tasks.register("buildProdNative") {
+    group = "build"
+    description = "Build Quarkus native image for PROD"
+
+    dependsOn("clean", "build")
+
+    doFirst {
+        System.setProperty("quarkus.profile", "prod")
+        System.setProperty("quarkus.package.type", "native")
+        System.setProperty("quarkus.native.container-build", "true")
+
+    }
+}
