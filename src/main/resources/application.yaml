@@ -13,6 +13,13 @@ quarkus:
     migrate-at-start: true
     change-log: db/migration/db-changelog-master.yaml
 
+  rest-client:
+    logging:
+      scope: request-response
+      body-limit: 1024
+    nettruyen:
+      url: https://nettruyenar.com
+
   profile: dev
 
   index-dependency:
@@ -97,17 +104,6 @@ management:
     otel:
       enabled: false
 
-    liquibase:
-      migrate-at-start: true
-      change-log: db/migration/db-changelog-master.yaml
-
-    rest-client:
-      logging:
-        scope: request-response
-        body-limit: 1024
-      nettruyen:
-        url: https://nettruyenar.com
-
   minio:
     secure: false
     access-key: C7iNx1b8y9RReMskaOIn
@@ -123,6 +119,18 @@ management:
     clean-up:
       enabled: true
       min-age-minutes: 5
+
+  otel:
+    metrics:
+      enabled: true
+    logs:
+      enabled: true
+    traces:
+      enabled: true
+    exporter:
+      otlp:
+        endpoint: localhost:4317
+        protocol: grpc
 
 "%prod":
   quarkus:
