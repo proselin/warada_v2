@@ -24,26 +24,30 @@ services:
       - "9001:9001"
     volumes:
       - ./temp/minio-data:/data
-  redis:
-    image: redis:7-alpine
-    volumes:
-      - ./temp/redis-data:/data
+
+#  redis:
+#    image: redis:7-alpine
+#    volumes:
+#      - ./temp/redis-data:/data
 
 
-#  test-image:
-#    container_name: warada_v2-test
-#    image: ghcr.io/proselin/warada_v2:1.0.1-native
-#    environment:
-#      DB_URL: jdbc:postgresql://postgres:5432/postgres
-#      DB_USERNAME: postgres
-#      DB_PASSWORD: postgres
-#      OTLP_ENDPOINT: http://otel-collector:4317
-#      MINIO_ENDPOINT: http://minio:9000
-#      MINIO_SECURE: false
-#      MINIO_ACCESS_KEY: C7iNx1b8y9RReMskaOIn
-#      MINIO_SECRET_KEY: xl8XmRjMGsOeNKSetT9p1JccWxeNu2MY84nQs4Ye
-#    ports:
-#      - "8080:8080"
+  test-image:
+    container_name: warada_v2-test
+    image: ghcr.io/proselin/warada_v2:dev_ee8b770e-native
+    environment:
+      -  DB_URL=jdbc:postgresql://postgres:5432/postgres
+      -  DB_USERNAME=postgres
+      -  DB_PASSWORD=postgres
+      -  OTLP_ENDPOINT=http://otel-collector:4317
+      -  MINIO_ENDPOINT=http://minio:9000
+      -  MINIO_SECURE=false
+      -  MINIO_ACCESS_KEY=eFdGLWXxEzRN7FUNiFJy
+      -  MINIO_SECRET_KEY=228vRmE6WPUCCkjLn4PSoEepLxG2mFBrZ7bfSKxu
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - otel-collector
 
   otel-collector:
     image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.140.0
