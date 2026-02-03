@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./temp/db-data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:RELEASE.2025-01-18T00-31-37Z
+    command: >
+      minio server /data
+      --address ":9000"
+      --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USERNAME:-admin}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD:-admin123123123123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./temp/minio-data:/data
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - ./temp/redis-data:/data
+
+
+#  test-image:
+#    container_name: warada_v2-test
+#    image: warada_v2:test
+#    environment:
+#      DB_URL: jdbc:postgresql://postgres-warada-v2:5432/postgres
+#      OTLP_ENDPOINT: http://dev-otel-collector:4318
+#      MINIO_ENDPOINT: http://dev-minio:9000
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      dev-network:
+

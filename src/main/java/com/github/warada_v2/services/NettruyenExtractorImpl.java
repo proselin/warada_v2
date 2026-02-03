@@ -182,11 +182,17 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String extension = getExtensionFromUrl(imageUrl);
-            String filename = timestamp + uniqueName + extension;
+            String filename = timestamp + '_' + uniqueName + extension;
             String object = waradaConfig.imageBucketTempPath() + "/" + filename;
             log.info("[Start] Minio saving image with file Name " + filename);
-            this.minioClient.putObject(PutObjectArgs.builder().contentType(contentType).object(object).bucket(waradaConfig.imageBucket()).stream(imageStream, -1, 10485760) // -1 = unknown size, 10MB part size
-                    .build());
+            this.minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .contentType(contentType)
+                            .object(object)
+                            .bucket(waradaConfig.imageBucket())
+                            .stream(imageStream, -1, 10485760) // -1 = unknown size, 10MB part size
+                    .build()
+            );
             log.info("[Done] Minio Saved image with file Name " + filename);
             var result = new HashMap<String, String>();
             result.put("fileName", filename);

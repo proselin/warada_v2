@@ -14,12 +14,6 @@ quarkus:
     change-log: db/migration/db-changelog-master.yaml
 
   profile: dev
-  datasource:
-    db-kind: postgresql
-    username: postgres
-    password: postgres
-    jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
 
   index-dependency:
     commons:
@@ -75,6 +69,12 @@ management:
         org.jboss.resteasy.reactive.client.logging:
           level: DEBUG
 
+    datasource:
+      db-kind: postgresql
+      username: postgres
+      password: postgres
+      jdbc:
+        url: jdbc:postgresql://localhost:5432/postgres
 
     hibernate-orm:
       log:
@@ -109,10 +109,10 @@ management:
         url: https://nettruyenar.com
 
   minio:
-    secure: ${MINIO_SECURE:false}
-    access-key: ${MINIO_ACCESS_KEY:4Vzg7fHEbwupPWMfTbew}
-    secret-key: ${MINIO_SECRET_KEY:FkK9N3OwUg6Gm8gokdKMvFSyfryvGtl47RzY46YL}
-    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    secure: false
+    access-key: C7iNx1b8y9RReMskaOIn
+    secret-key: xl8XmRjMGsOeNKSetT9p1JccWxeNu2MY84nQs4Ye
+    endpoint: http://localhost:9000
 
   warada:
     nettruyen:
@@ -176,8 +176,8 @@ management:
 
     log:
       level: INFO
-    #    console:
-    #      format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
+      console:
+        format: %d{HH:mm:ss} %-5p traceId=%X{traceId}, parentId=%X{parentId}, spanId=%X{spanId}, sampled=%X{sampled} [%c{2.}] (%t) %s%e%n
 
 
   warada:
@@ -230,7 +230,7 @@ management:
       username: postgres
       password: postgres
       jdbc:
-        url: ${DB_URL:jdbc:postgresql://postgres:5432/postgres}
+        url: ${DB_URL}
 
     rest-client:
       nettruyen:
