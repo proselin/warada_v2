@@ -120,18 +120,6 @@ management:
       enabled: true
       min-age-minutes: 5
 
-  otel:
-    metrics:
-      enabled: true
-    logs:
-      enabled: true
-    traces:
-      enabled: true
-    exporter:
-      otlp:
-        endpoint: localhost:4317
-        protocol: grpc
-
 "%prod":
   quarkus:
 

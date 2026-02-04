@@ -22,10 +22,12 @@ configs:
       
       exporters:
         # Prometheus exporter for metrics
-        prometheus:
-          endpoint: "[::]:8889"
-        debug:
-          verbosity: detailed
+        #prometheus:
+        #  endpoint: "[::]:8889"
+        #debug:
+        #  verbosity: detailed
+        #  sampling_initial: 5
+        #  sampling_thereafter: 200
       
       extensions:
         health_check:
@@ -90,7 +92,7 @@ services:
 
   test-image:
     container_name: warada_v2-test
-    image: ghcr.io/proselin/warada_v2:dev_ee8b770e-native
+    image: ghcr.io/proselin/warada_v2:deveaf634f6-native
     environment:
       -  DB_URL=jdbc:postgresql://postgres:5432/postgres
       -  DB_USERNAME=postgres
