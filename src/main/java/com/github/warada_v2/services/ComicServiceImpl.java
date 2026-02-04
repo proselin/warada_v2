@@ -15,6 +15,9 @@ public class ComicServiceImpl implements ComicService {
     ComicRepository comicRepository;
 
     public List<Comic> getPageableComics(PageRequest pageRequest) {
+        if(pageRequest == null) {
+            pageRequest = new PageRequest();
+        }
         return comicRepository.findPageableComics(pageRequest.toSort(), pageRequest.toPage());
     }
 

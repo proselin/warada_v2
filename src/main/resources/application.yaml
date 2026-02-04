@@ -106,8 +106,8 @@ management:
 
   minio:
     secure: false
-    access-key: C7iNx1b8y9RReMskaOIn
-    secret-key: xl8XmRjMGsOeNKSetT9p1JccWxeNu2MY84nQs4Ye
+    access-key: yHvJIk6g84c0lVIx94Ex
+    secret-key: us8xsDLk89m2chu7p48giww4eea5uU9LKCn2q3zX
     endpoint: http://localhost:9000
 
   warada:
