@@ -6,6 +6,7 @@ import io.quarkus.panache.common.Sort;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class ComicRepositoryImpl implements ComicRepository {
@@ -16,5 +17,9 @@ public class ComicRepositoryImpl implements ComicRepository {
 
     public Boolean existedBySlugAndComicId(String slugAndComicId) {
         return count("originPathParams = ?1", slugAndComicId ) > 0;
+    }
+
+    public Optional<Comic> findBySlugAndComicId(String slugAndComicId) {
+        return find("originPathParams", slugAndComicId).firstResultOptional();
     }
 }

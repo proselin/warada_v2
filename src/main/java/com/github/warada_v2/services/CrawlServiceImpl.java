@@ -7,6 +7,7 @@ import com.github.warada_v2.db_entities.Chapter;
 import com.github.warada_v2.db_entities.Comic;
 import com.github.warada_v2.db_entities.Image;
 import com.github.warada_v2.exceptions.ConflictException;
+import com.github.warada_v2.models.CrawlNettruyenSSEComic;
 import com.github.warada_v2.repositories.ChapterRepository;
 import com.github.warada_v2.repositories.ComicRepository;
 import com.github.warada_v2.repositories.ImageRepository;
@@ -14,9 +15,12 @@ import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
+import io.minio.errors.ErrorResponseException;
+import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import lombok.extern.jbosslog.JBossLog;
 
 import java.util.Arrays;
@@ -127,14 +131,15 @@ public class CrawlServiceImpl implements CrawlService {
     log.infof("[DONE] Crawling individual chapter with ID: %s", chapterId);
   }
 
-  private void crawlChapter(Chapter chapter) {
+  @Transactional
+  protected void crawlChapter(Chapter chapter) {
     if (chapter.getCrawlingStatus() != CrawlStatus.INIT) {
       log.warnf("Chapter with id %s is already crawled", chapter.getId());
       return;
     }
     // Set newer status
     chapter.setCrawlingStatus(CrawlStatus.STARTED);
-    chapterRepository.persist(chapter);
+    chapterRepository.persistOrUpdate(chapter);
     var detail = nettruyenExtractor.extractChapterDetail(chapter.getOriginPathParams());
 
     log.infof("Pull chapter detail:= %s", detail);
@@ -165,7 +170,7 @@ public class CrawlServiceImpl implements CrawlService {
       chapter.setImages(images);
       chapter.setCrawlingStatus(CrawlStatus.FINISHED);
       imageRepository.persist(images);
-      chapterRepository.persistAndFlush(chapter);
+      chapterRepository.persistOrUpdate(chapter);
   }
 
   private void renameObject(String bucket, String oldName, String newName) throws Exception {
@@ -184,5 +189,55 @@ public class CrawlServiceImpl implements CrawlService {
 
   private String generateNewImageObject(String fileName) {
     return waradaConfig.imageBucketImagesPath() + "/" + fileName;
+  }
+
+  @Override
+  @Transactional
+  public Multi<CrawlNettruyenSSEComic> crawlNettruyenSSEChapter(String slugNId) {
+    Comic comic = comicRepository.findBySlugAndComicId(slugNId).orElse(null);
+
+    if(comic == null ) {
+      throw new NotFoundException("Not found comic slug");
+    }
+
+    log.infof("[START] Crawling SSE comic with ID: %s", slugNId);
+
+    if(comic.getCrawlingStatus() != CrawlStatus.FINISHED) {
+      throw new ConflictException("Crawling Nettruyen Comic " + slugNId +  " is crawl on another process");
+    }
+
+    return Multi.createFrom().emitter(emitter -> {
+      comic.getChapters().stream().parallel().forEach(chapter -> {
+          switch (chapter.getCrawlingStatus()) {
+            case STARTED, INIT -> {
+              log.infof("[ADD] Crawling SSE chapter with ID: %s", chapter.getId());
+              crawlChapter(chapter);
+              var rs = new CrawlNettruyenSSEComic(
+                      CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD,
+                      "Added",
+                      new CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter(
+                              chapter.getId(),
+                              chapter.getCrawlingStatus(),
+                              chapter.getChapterNumber()
+                      )
+              );
+              emitter.emit(rs);
+            }
+            case FINISHED -> {
+              log.infof("[IGNORE] Crawling SSE chapter with ID: %s", chapter.getId());
+              var rs = new CrawlNettruyenSSEComic(
+                      CrawlNettruyenSSEComic.CrawlNettruyenSSEType.IGNORE,
+                      "Ignore -> Chapter already crawled",
+                      new CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter(
+                              chapter.getId(),
+                              chapter.getCrawlingStatus(),
+                              chapter.getChapterNumber()
+                      )
+              );
+              emitter.emit(rs);
+            }
+          }
+      });
+    });
   }
 }

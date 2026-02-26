@@ -22,4 +22,12 @@ public class ChapterRepositoryImpl implements ChapterRepository {
     public List<Chapter> findByComicId(Long comicId, Sort sort, Page page) {
         return find("comic.id = ?1", sort, comicId).page(page).list();
     }
+
+    public void persistOrUpdate(Chapter chapter) {
+        if (chapter.getId() == null) {
+            persist(chapter);
+            return;
+        }
+        getEntityManager().merge(chapter);
+    }
 }

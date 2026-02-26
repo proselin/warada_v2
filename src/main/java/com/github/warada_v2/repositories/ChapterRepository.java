@@ -12,4 +12,5 @@ public interface ChapterRepository extends PanacheRepository<Chapter> {
     Optional<Chapter> findBySlug(String slug);
     Optional<Chapter> findByIdOptional(Long aLong);
     List<Chapter> findByComicId(Long comicId, Sort sort, Page page);
+    void persistOrUpdate(Chapter chapter);
 }
