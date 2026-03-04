@@ -6,6 +6,7 @@ import com.github.warada_v2.configurations.WaradaConfig;
 import com.github.warada_v2.db_entities.Chapter;
 import com.github.warada_v2.db_entities.Comic;
 import com.github.warada_v2.db_entities.Image;
+import com.github.warada_v2.db_entities.Tag;
 import com.github.warada_v2.exceptions.ConflictException;
 import com.github.warada_v2.models.CrawlNettruyenSSEComic;
 import com.github.warada_v2.repositories.ChapterRepository;
@@ -26,7 +27,6 @@ import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import lombok.extern.jbosslog.JBossLog;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -54,6 +54,9 @@ public class CrawlServiceImpl implements CrawlService {
     ImageRepository imageRepository;
 
     @Inject
+    TagService tagService;
+
+    @Inject
     Sse sse;
 
     /**
@@ -71,11 +74,14 @@ public class CrawlServiceImpl implements CrawlService {
             var extracted = nettruyenExtractor.extractComicDetail(slugNId);
 
             var extractedComic = extracted.comic();
+
+            // Resolve tags: normalize (lowercase), reuse existing or create new
+            List<Tag> resolvedTags = tagService.resolveOrCreateTags(extractedComic.genre());
+
             Comic comic =
                     Comic.builder()
                             .slug(extractedComic.slug())
                             .author(extractedComic.author().name())
-                            .tags(Arrays.toString(extractedComic.genre().toArray()))
                             .title(extractedComic.name())
                             .description(extractedComic.description())
                             .originId(extractedComic.comicId().toString())
@@ -83,6 +89,7 @@ public class CrawlServiceImpl implements CrawlService {
                             .originUrl(extractedComic.url())
                             .originPathParams(slugNId)
                             .crawlingStatus(CrawlStatus.FINISHED)
+                            .tags(resolvedTags)
                             .build();
 
             // Init thumb Image
@@ -121,6 +128,10 @@ public class CrawlServiceImpl implements CrawlService {
             comic.setChapterCount(chapters.size());
 
             comicRepository.persistAndFlush(comic);
+
+            // Update comic count on each resolved tag
+            tagService.incrementComicCount(resolvedTags);
+
             log.info("DONE Crawling Nettruyen Comic from " + slugNId);
         } catch (Exception e) {
             log.error("ERROR Crawling Nettruyen Comic from " + slugNId);

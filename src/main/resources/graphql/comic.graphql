@@ -8,7 +8,7 @@ type Comic {
     status: String
     description: String
     originUrl: String
-    tags: String
+    tags: [Tag]
     author: String
     slug: String
     crawlingStatus: String

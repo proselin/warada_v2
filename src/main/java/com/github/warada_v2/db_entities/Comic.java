@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -57,10 +58,16 @@ public class Comic {
     private String originUrl;
 
     @Column()
-    private String tags;
-
-    @Column()
     private String author;
+
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "comic_tags",
+            joinColumns = @JoinColumn(name = "comic_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    @Builder.Default
+    private List<Tag> tags = new ArrayList<>();
 
     @Column(name = "slug", unique = true, nullable = false, length = 200)
     private String slug;
