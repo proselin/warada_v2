@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/migration/initialize-270925.sql
+  - include:
+      file: db/migration/remove-unique-260226.sql

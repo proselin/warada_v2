@@ -25,7 +25,7 @@ public class ChapterRepositoryImpl implements ChapterRepository {
 
     public void persistOrUpdate(Chapter chapter) {
         if (chapter.getId() == null) {
-            persist(chapter);
+            getEntityManager().persist(chapter);
             return;
         }
         getEntityManager().merge(chapter);

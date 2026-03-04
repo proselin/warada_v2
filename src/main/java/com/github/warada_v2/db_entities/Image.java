@@ -32,7 +32,7 @@ public class Image {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column(name = "file_name")
+    @Column(name = "file_name", unique = false, nullable = false)
     private String fileName;
 
     @Column(name = "file_path")

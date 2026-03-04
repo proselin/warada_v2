@@ -1,4 +1,7 @@
 quarkus:
+  console:
+    color: false
+
   arc:
     dev-mode:
       generate-dependency-graphs: true
@@ -74,7 +77,7 @@ management:
       level: INFO
       category:
         org.jboss.resteasy.reactive.client.logging:
-          level: DEBUG
+          level: INFO
 
     datasource:
       db-kind: postgresql
