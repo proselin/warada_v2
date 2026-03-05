@@ -1,0 +1,120 @@
+configs:
+  otel-collector-config:
+    name: otel-collector-config
+    content: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:4317
+            http:
+              endpoint: 0.0.0.0:4318
+      
+      processors:
+        batch:
+      
+        # Attach service name (if app doesn't send it, you can override here)
+        resource:
+          attributes:
+            - key: service.name
+              action: upsert
+              value: warada
+      
+      exporters:
+        # Prometheus exporter for metrics
+        #prometheus:
+        #  endpoint: "[::]:8889"
+        #debug:
+        #  verbosity: detailed
+        #  sampling_initial: 5
+        #  sampling_thereafter: 200
+      
+      extensions:
+        health_check:
+          endpoint: "[::]:13133"
+        zpages:
+          endpoint: "[::]:55679"
+        pprof:
+          endpoint: "[::]:1888"
+      
+      
+      
+      service:
+        extensions: [ health_check, zpages, pprof ]
+        pipelines:
+          traces:
+            receivers: [ otlp ]
+            processors: [ batch ]
+            exporters: [ debug ]
+          metrics:
+            receivers: [ otlp ]
+            processors: [ batch ]
+            exporters: [ debug ]
+          logs:
+            receivers: [ otlp ]
+            processors: [ batch ]
+            exporters: [ debug ]
+      
+
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./temp/db-data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:RELEASE.2025-01-18T00-31-37Z
+    command: >
+      minio server /data
+      --address ":9000"
+      --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USERNAME:-admin}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD:-admin123123123123}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - ./temp/minio-data:/data
+
+#  redis:
+#    image: redis:7-alpine
+#    volumes:
+#      - ./temp/redis-data:/data
+
+#
+#  test-image:
+#    container_name: warada_v2-test
+#    image: ghcr.io/proselin/warada_v2:deveaf634f6-native
+#    environment:
+#      -  DB_URL=jdbc:postgresql://postgres:5432/postgres
+#      -  DB_USERNAME=postgres
+#      -  DB_PASSWORD=postgres
+#      -  OTLP_ENDPOINT=http://otel-collector:4317
+#      -  MINIO_ENDPOINT=http://minio:9000
+#      -  MINIO_SECURE=false
+#      -  MINIO_ACCESS_KEY=eFdGLWXxEzRN7FUNiFJy
+#      -  MINIO_SECRET_KEY=228vRmE6WPUCCkjLn4PSoEepLxG2mFBrZ7bfSKxu
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - postgres
+#      - otel-collector
+#
+#  otel-collector:
+#    image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.140.0
+#    command: [ "--config=/etc/otelcol/config.yaml" ]
+#    ports:
+#      - "4317:4317"
+#      - "4318:4318"
+#    configs:
+#      - source: otel-collector-config
+#        target: /etc/otelcol/config.yaml
+

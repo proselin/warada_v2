@@ -49,7 +49,8 @@ This fires up a PostgreSQL instance. Username: `postgres`, Password: `postgres`.
 
 ### Step 2: Run in Dev Mode (with Live Reload Magic ✨)
 
-```shell script
+### 3. Run in dev mode
+```bash
 ./gradlew quarkusDev
 ```http
 

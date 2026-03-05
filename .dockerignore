@@ -3,3 +3,12 @@
 !build/*-runner.jar
 !build/lib/*
 !build/quarkus-app/*
+
+temp
+.github
+.idea
+.gitignore
+.gradle
+.env
+scripts
+
