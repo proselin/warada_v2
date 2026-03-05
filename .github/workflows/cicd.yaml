@@ -50,6 +50,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
+          file: ./src/main/docker/Dockerfile.native
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
