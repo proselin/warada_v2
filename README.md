@@ -20,7 +20,7 @@ Built on [Quarkus](https://quarkus.io/) — the Supersonic Subatomic Java Framew
 
 ### Project Structure (a.k.a. "The Over-Architecture")
 
-```http
+```text
 warada_v2/
 ├── application/        # The main entry point. Where everything starts (and hopefully doesn't crash)
 ├── db-entities/        # JPA entities — Comic, Chapter, Image (the holy trinity)
@@ -29,7 +29,7 @@ warada_v2/
 ├── resources/          # REST & GraphQL endpoints. Actually useful endpoints go here
 ├── commons/            # Shared utilities. Currently a museum of good intentions
 └── configurations/     # Config classes. Because magic constants are a war crime
-```http
+```
 
 ## Running this Masterpiece 🖥️
 
@@ -41,32 +41,40 @@ warada_v2/
 
 ### Step 1: Start the Database (the Real MVP)
 
-```shell script
+```shell
 docker compose -f docker.compose.yaml up -d
-```http
+```
 
-This fires up a PostgreSQL instance. Username: `postgres`, Password: `postgres`. Super secure. Don't deploy this anywhere.
+This fires up a PostgreSQL instance.  
+Username: `postgres`  
+Password: `postgres`  
+
+Super secure. Don't deploy this anywhere.
 
 ### Step 2: Run in Dev Mode (with Live Reload Magic ✨)
 
-### 3. Run in dev mode
-```bash
+```shell
 ./gradlew quarkusDev
-```http
+```
 
-Your app is now running at <http://localhost:8080>. A fancy Dev UI awaits you at <http://localhost:8080/q/dev/> — it's like a spaceship cockpit but for your app.
+Your app is now running at <http://localhost:8080>.  
+A fancy Dev UI awaits you at <http://localhost:8080/q/dev/>.
 
-Want to poke at the GraphQL API? It's at <http://localhost:8080/graphql> with a playground UI available in dev mode.
+Want to poke at the GraphQL API?  
+It's at <http://localhost:8080/graphql> with a playground UI available in dev mode.
 
 ### Step 3: Actually Use It
 
 Hit the REST crawl endpoint:
+
 ```http
 GET http://localhost:8080/api/v1/crawl
 ```
+
 *(Spoiler: it currently just says hi. The real crawling is "coming soon™")*
 
 Query some comics via GraphQL:
+
 ```graphql
 query {
   comics {
@@ -75,75 +83,77 @@ query {
     status
   }
 }
-```http
+```
+
 *(Spoiler #2: returns hardcoded demo data. Real data is also "coming soon™")*
 
 ## Building for Production (Why Though?) 📦
 
 Package it up:
 
-```shell script
+```shell
 ./gradlew build
-```http
+```
 
 Run the jar:
 
-```shell script
+```shell
 java -jar build/quarkus-app/quarkus-run.jar
-```http
+```
 
-If you're feeling adventurous and want an über-jar (a jar so fat it contains everything):
+If you're feeling adventurous and want an über-jar:
 
-```shell script
+```shell
 ./gradlew build -Dquarkus.package.jar.type=uber-jar
 java -jar build/*-runner.jar
-```http
+```
 
 ## Native Executable (Maximum Overkill) ⚡
 
-Want to compile to a native binary? Sure, why not.
+Want to compile to a native binary?
 
-```shell script
+```shell
 ./gradlew build -Dquarkus.native.enabled=true
-```http
+```
 
-No GraalVM? No problem, use Docker (we're already using it anyway):
+No GraalVM? No problem, use Docker:
 
-```shell script
+```shell
 ./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-```http
+```
 
 Then run it:
-```shell script
+
+```shell
 ./build/warada_v2-1.0-SNAPSHOT-runner
-```http
+```
 
 Starts in milliseconds. Uses almost no memory. Perfect for a project that runs on exactly zero servers.
 
 ## Current Status 🚦
 
 | Feature | Status |
-|---------|--------|
-| Database entities (Comic, Chapter, Image) | ✅ Done! |
-| Repositories | ✅ Done! |
+|--------|--------|
+| Database entities (Comic, Chapter, Image) | ✅ Done |
+| Repositories | ✅ Done |
 | GraphQL API | ✅ Kinda works (returns hello + demo data) |
-| REST API | ✅ Returns a greeting, very friendly |
+| REST API | ✅ Returns a greeting |
 | Services (actual business logic) | 🚧 Coming soon™ |
 | Actual crawling | 🚧 Coming soon™ |
 | Being published | ❌ Not until I change my mind |
 
 ## FAQ ❓
 
-**Q: Can I use this in production?**
+**Q: Can I use this in production?**  
 A: lol no
 
-**Q: When will it be finished?**
+**Q: When will it be finished?**  
 A: When I feel like it. It's a hobby project.
 
-**Q: Why "warada_v2"? What happened to v1?**
+**Q: Why "warada_v2"? What happened to v1?**  
 A: We don't talk about v1.
 
-**Q: Should I star this repo?**
+**Q: Should I star this repo?**  
 A: Absolutely yes, it will make me feel validated 🌟
 
 ---
