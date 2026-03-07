@@ -25,21 +25,29 @@ public class FileTempClearer {
 
   @Inject WaradaConfig waradaConfig;
 
-  private final int MIN_AGES_MINUTES = waradaConfig.cleanUp().minAgeMinutes();
-  private final boolean ENABLED = waradaConfig.cleanUp().enabled();
-  private final String PREFIX = waradaConfig.imageBucketTempPath() + "/";
-  private final String BUCKET = waradaConfig.imageBucket();
+  private int minAgesMinutes;
+  private boolean enabled;
+  private String prefix;
+  private String bucket;
+
+  @jakarta.annotation.PostConstruct
+  void init() {
+    minAgesMinutes = waradaConfig.cleanUp().minAgeMinutes();
+    enabled = waradaConfig.cleanUp().enabled();
+    prefix = waradaConfig.imageBucketTempPath() + "/";
+    bucket = waradaConfig.imageBucket();
+  }
 
   @Scheduled(cron = "0 0 0,7,14,19 * * ?", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
   void cleanTempObjects() {
-    if (!ENABLED) {
+    if (!enabled) {
       log.debug("FileTempClearer disabled; skipping");
       return;
     }
 
     final Instant now = Instant.now();
-    final Instant cutoff = now.minus(Duration.ofMinutes(MIN_AGES_MINUTES));
-    log.infof("Scanning bucket=%s prefix=%s cutoff=%s", BUCKET, PREFIX, cutoff);
+    final Instant cutoff = now.minus(Duration.ofMinutes(minAgesMinutes));
+    log.infof("Scanning bucket=%s prefix=%s cutoff=%s", bucket, prefix, cutoff);
 
     int scanned = 0;
     int candidates = 0;
@@ -49,7 +57,7 @@ public class FileTempClearer {
     try {
       var results =
           minio.listObjects(
-              ListObjectsArgs.builder().bucket(BUCKET).prefix(PREFIX).recursive(true).build());
+              ListObjectsArgs.builder().bucket(bucket).prefix(prefix).recursive(true).build());
 
       for (var res : results) {
         Item item;
@@ -76,7 +84,7 @@ public class FileTempClearer {
       for (String obj : toDelete) {
 
         try {
-          minio.removeObject(RemoveObjectArgs.builder().bucket(BUCKET).object(obj).build());
+          minio.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(obj).build());
           deleted++;
         } catch (Exception e) {
           log.warnf(e, "Failed to delete %s", obj);

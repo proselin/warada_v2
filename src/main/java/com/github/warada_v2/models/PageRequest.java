@@ -27,9 +27,9 @@ public class PageRequest {
         if (sortBy == null || sortBy.isBlank()) {
             return null;
         }
-        return switch (sortBy) {
-            case "asc", "ASC" -> Sort.ascending(sortOrder);
-            case "desc", "DESC" -> Sort.descending(sortOrder);
+        return switch (sortOrder) {
+            case "asc", "ASC" -> Sort.ascending(sortBy);
+            case "desc", "DESC" -> Sort.descending(sortBy);
             default -> null;
         };
     }
