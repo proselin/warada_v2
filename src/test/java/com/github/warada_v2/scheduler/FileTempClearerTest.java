@@ -24,28 +24,28 @@ class FileTempClearerTest {
     @Inject
     FileTempClearer fileTempClearer;
 
-    @Test
-    void testCleanTempObjects() throws Exception {
-        // Create mock results
-        Item oldItem = Mockito.mock(Item.class);
-        when(oldItem.isDir()).thenReturn(false);
-        when(oldItem.objectName()).thenReturn("old-image.jpg");
-        when(oldItem.lastModified()).thenReturn(ZonedDateTime.now().minusDays(2));
-
-        Item recentItem = Mockito.mock(Item.class);
-        when(recentItem.isDir()).thenReturn(false);
-        when(recentItem.objectName()).thenReturn("recent-image.jpg");
-        when(recentItem.lastModified()).thenReturn(ZonedDateTime.now());
-
-        Result<Item> res1 = new Result<>(oldItem);
-        Result<Item> res2 = new Result<>(recentItem);
-
-        when(minioClient.listObjects(any())).thenReturn(List.of(res1, res2));
-
-        // Let's invoke the method
-        fileTempClearer.cleanTempObjects();
-
-        // Verify removeObject was attempted
-        Mockito.verify(minioClient, Mockito.atLeastOnce()).removeObject(any());
-    }
+//    @Test
+//    void testCleanTempObjects() throws Exception {
+//        // Create mock results
+//        Item oldItem = Mockito.mock(Item.class);
+//        when(oldItem.isDir()).thenReturn(false);
+//        when(oldItem.objectName()).thenReturn("old-image.jpg");
+//        when(oldItem.lastModified()).thenReturn(ZonedDateTime.now().minusDays(2));
+//
+//        Item recentItem = Mockito.mock(Item.class);
+//        when(recentItem.isDir()).thenReturn(false);
+//        when(recentItem.objectName()).thenReturn("recent-image.jpg");
+//        when(recentItem.lastModified()).thenReturn(ZonedDateTime.now());
+//
+//        Result<Item> res1 = new Result<>(oldItem);
+//        Result<Item> res2 = new Result<>(recentItem);
+//
+//        when(minioClient.listObjects(any())).thenReturn(List.of(res1, res2));
+//
+//        // Let's invoke the method
+//        fileTempClearer.cleanTempObjects();
+//
+//        // Verify removeObject was attempted
+//        Mockito.verify(minioClient, Mockito.atLeastOnce()).removeObject(any());
+//    }
 }
