@@ -150,3 +150,6 @@ Images follow a two-phase write: temp path → permanent path.
 | `test-native` | Native integration testing |
 
 Config is in `src/main/resources/application.yaml` using `%dev`, `%prod`, `%test-native` profile prefixes.
+
+
+Using skills is in `.agents/skills/*`

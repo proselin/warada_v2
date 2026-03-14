@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "13b0b2aa645c340d54fb7e91d7ff5d1417a4d10c9d4c381b4b0fd629a6398155"
+    },
+    "database-schema-design": {
+      "source": "supercent-io/skills-template",
+      "sourceType": "github",
+      "computedHash": "c3193721f3420d8e669ad42f33de538acc1ddaeacfceb58309f80eafb0b00752"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "computedHash": "6412eb4eb3b91595ebab937f0c69501240e7ba761b3d82510b5cf506ec5c7adc"
+    },
+    "graphql-operations": {
+      "source": "apollographql/skills",
+      "sourceType": "github",
+      "computedHash": "d0532171706cbba72112a6f3ffdc49d5d15b22fdd092de7324099e767bf1cbf1"
+    },
+    "graphql-schema": {
+      "source": "apollographql/skills",
+      "sourceType": "github",
+      "computedHash": "92b5f143d4d7f80a2fd5fe5421bccaa0ec35b1f9f4acdf3f71a019191cf3c4a4"
+    },
+    "java-add-graalvm-native-image-support": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "computedHash": "81dbd0ee073c906db0fa9f7942b610e5b12b977757bc880dc282a5150e705fcf"
+    },
+    "java-quarkus-development": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "computedHash": "af91e2e5327f0cb2aa163bffb70020ff410765a919dc6c9d60e6d027d5c1eca0"
+    }
+  }
+}
