@@ -4,6 +4,8 @@ import com.github.warada_v2.models.ChapterDetailGql;
 import com.github.warada_v2.models.CreateChapterRequest;
 import com.github.warada_v2.services.ChapterService;
 
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -25,16 +27,20 @@ public class ChapterRestResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createChapter(CreateChapterRequest request) {
-        var chapter = chapterService.createChapter(request);
-        return Response.status(Response.Status.CREATED).entity(ChapterDetailGql.fromEntity(chapter)).build();
+    public Uni<Response> createChapter(CreateChapterRequest request) {
+        return Uni.createFrom().item(() -> {
+            var chapter = chapterService.createChapter(request);
+            return Response.status(Response.Status.CREATED).entity(ChapterDetailGql.fromEntity(chapter)).build();
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteChapter(@PathParam("id") Long id) {
-        chapterService.deleteChapter(id);
-        return Response.noContent().build();
+    public Uni<Response> deleteChapter(@PathParam("id") Long id) {
+        return Uni.createFrom().item(() -> {
+            chapterService.deleteChapter(id);
+            return Response.noContent().build();
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 }

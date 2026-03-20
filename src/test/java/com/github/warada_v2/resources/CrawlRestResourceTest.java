@@ -1,20 +1,25 @@
 package com.github.warada_v2.resources;
 
-import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
-import com.github.warada_v2.models.CrawlNettruyenComicRequest;
-import com.github.warada_v2.services.CrawlService;
-import io.smallrye.mutiny.Multi;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.sse.OutboundSseEvent;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
+import com.github.warada_v2.models.CrawlNettruyenComicRequest;
+import com.github.warada_v2.services.CrawlService;
+
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.sse.OutboundSseEvent;
 
 class CrawlRestResourceTest {
 
@@ -30,10 +35,11 @@ class CrawlRestResourceTest {
     }
 
     @Test
-    void testCrawlIndividualComic() throws Exception {
+    void testCrawlIndividualComic() {
         CrawlNettruyenComicRequest request = new CrawlNettruyenComicRequest("test-slug-123");
 
-        Response response = crawlRestResource.crawlIndividualComic(request);
+        Uni<Response> uni = crawlRestResource.crawlIndividualComic(request);
+        Response response = uni.await().indefinitely();
 
         assertNotNull(response);
         assertEquals(200, response.getStatus());
@@ -42,10 +48,11 @@ class CrawlRestResourceTest {
     }
 
     @Test
-    void testCrawlChapter() throws Exception {
+    void testCrawlChapter() {
         CrawlNettruyenChapterRequest request = new CrawlNettruyenChapterRequest(5L);
 
-        Response response = crawlRestResource.crawlChapter(request);
+        Uni<Response> uni = crawlRestResource.crawlChapter(request);
+        Response response = uni.await().indefinitely();
 
         assertNotNull(response);
         assertEquals(200, response.getStatus());
@@ -54,7 +61,7 @@ class CrawlRestResourceTest {
     }
 
     @Test
-    void testCrawlChapterByComic() throws Exception {
+    void testCrawlChapterByComic() {
         Multi<OutboundSseEvent> mockMulti = mock(Multi.class);
         when(crawlService.crawlNettruyenSSEChapter("test-slug-123")).thenReturn(mockMulti);
 

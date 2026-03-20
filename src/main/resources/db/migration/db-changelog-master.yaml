@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/migration/remove-unique-260226.sql
   - include:
       file: db/migration/add-tags-table-260304.sql
+  - include:
+      file: db/migration/add-update-schedule-260314.sql

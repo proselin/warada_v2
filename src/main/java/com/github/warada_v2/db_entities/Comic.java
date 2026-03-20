@@ -1,16 +1,39 @@
 package com.github.warada_v2.db_entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.github.warada_v2.commons.enums.CrawlStatus;
-import com.github.warada_v2.converter.CrawlStatusConverter;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.github.warada_v2.commons.enums.CrawlStatus;
+import com.github.warada_v2.commons.enums.UpdateSchedule;
+import com.github.warada_v2.converter.CrawlStatusConverter;
+import com.github.warada_v2.converter.UpdateScheduleConverter;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 
 @Getter
@@ -84,6 +107,21 @@ public class Comic {
     @OneToMany(targetEntity = Chapter.class, mappedBy = "comic", orphanRemoval = true, cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Chapter> chapters;
+
+    @Convert(converter = UpdateScheduleConverter.class)
+    @Column(name = "update_on", nullable = false)
+    @Builder.Default
+    private UpdateSchedule updateOn = UpdateSchedule.NONE;
+
+    @Column(name = "fixed_time_to_next_update", nullable = false)
+    @Builder.Default
+    private Integer fixedTimeToNextUpdate = 0;
+
+    @Column(name = "next_update_date")
+    private LocalDateTime nextUpdateDate;
+
+    @Column(name = "last_update_date")
+    private LocalDateTime lastUpdateDate;
 
 }
 

@@ -3,6 +3,8 @@ package com.github.warada_v2.resources;
 import com.github.warada_v2.models.CreateComicRequest;
 import com.github.warada_v2.services.ComicService;
 
+import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -24,16 +26,20 @@ public class ComicRestResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createComic(CreateComicRequest request) {
-        var comic = comicService.createComic(request);
-        return Response.status(Response.Status.CREATED).entity(comic).build();
+    public Uni<Response> createComic(CreateComicRequest request) {
+        return Uni.createFrom().item(() -> {
+            var comic = comicService.createComic(request);
+            return Response.status(Response.Status.CREATED).entity(comic).build();
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response deleteComic(@PathParam("id") Long id) {
-        comicService.deleteComic(id);
-        return Response.noContent().build();
+    public Uni<Response> deleteComic(@PathParam("id") Long id) {
+        return Uni.createFrom().item(() -> {
+            comicService.deleteComic(id);
+            return Response.noContent().build();
+        }).runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
     }
 }

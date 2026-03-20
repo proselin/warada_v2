@@ -84,10 +84,12 @@ services:
     volumes:
       - ./temp/minio-data:/data
 
-#  redis:
-#    image: redis:7-alpine
-#    volumes:
-#      - ./temp/redis-data:/data
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - ./temp/redis-data:/data
+    ports:
+      - "6379:6379"
 
 #
 #  test-image:

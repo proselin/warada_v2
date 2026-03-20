@@ -1,5 +1,9 @@
 package com.github.warada_v2.services;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.commons.enums.ImageType;
 import com.github.warada_v2.configurations.WaradaConfig;
@@ -12,6 +16,7 @@ import com.github.warada_v2.models.CrawlNettruyenSSEComic;
 import com.github.warada_v2.repositories.ChapterRepository;
 import com.github.warada_v2.repositories.ComicRepository;
 import com.github.warada_v2.repositories.ImageRepository;
+
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MinioClient;
@@ -26,10 +31,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.sse.OutboundSseEvent;
 import jakarta.ws.rs.sse.Sse;
 import lombok.extern.jbosslog.JBossLog;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @JBossLog
 @ApplicationScoped
@@ -63,7 +64,7 @@ public class CrawlServiceImpl implements CrawlService {
      * @param slugNId slug and id of nettruyen comic
      */
     @Transactional
-    public void crawlNettruyenComic(String slugNId) throws Exception {
+    public void crawlNettruyenComic(String slugNId) {
         log.info("START Crawling Nettruyen Comic from " + slugNId);
         // Check is comic is existed or not
         if (comicRepository.existedBySlugAndComicId(slugNId)) {
@@ -133,9 +134,12 @@ public class CrawlServiceImpl implements CrawlService {
             tagService.incrementComicCount(resolvedTags);
 
             log.info("DONE Crawling Nettruyen Comic from " + slugNId);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("ERROR Crawling Nettruyen Comic from " + slugNId);
             throw e;
+        } catch (Exception e) {
+            log.error("ERROR Crawling Nettruyen Comic from " + slugNId);
+            throw new RuntimeException(e);
         }
     }
 
