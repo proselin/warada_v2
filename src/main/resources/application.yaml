@@ -300,3 +300,5 @@ management:
     access-key: ${MINIO_ACCESS_KEY:4Vzg7fHEbwupPWMfTbew}
     secret-key: ${MINIO_SECRET_KEY:FkK9N3OwUg6Gm8gokdKMvFSyfryvGtl47RzY46YL}
     endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+
+

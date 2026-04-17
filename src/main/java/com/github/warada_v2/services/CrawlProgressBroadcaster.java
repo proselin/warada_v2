@@ -4,16 +4,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.models.CrawlProgressEvent;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.subscription.MultiEmitter;
 import jakarta.enterprise.context.ApplicationScoped;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @ApplicationScoped
 public class CrawlProgressBroadcaster {
+
+    private static final Logger log = Logger.getLogger(CrawlProgressBroadcaster.class);
 
     private final ConcurrentHashMap<String, CopyOnWriteArrayList<MultiEmitter<? super CrawlProgressEvent>>> emitters = new ConcurrentHashMap<>();
     private final Set<String> activeComics = ConcurrentHashMap.newKeySet();

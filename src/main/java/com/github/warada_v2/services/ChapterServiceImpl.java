@@ -2,6 +2,8 @@ package com.github.warada_v2.services;
 
 import java.util.List;
 
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.db_entities.Chapter;
 import com.github.warada_v2.exceptions.ResourceNotFoundException;
@@ -14,12 +16,11 @@ import com.github.warada_v2.repositories.ComicRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import lombok.extern.jbosslog.JBossLog;
 
 
-@JBossLog
 @ApplicationScoped
 public class ChapterServiceImpl implements ChapterService {
+    private static final Logger log = Logger.getLogger(ChapterServiceImpl.class);
     @Inject
     ChapterRepository chapterRepository;
 

@@ -13,8 +13,8 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.jbosslog.JBossLog;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -26,9 +26,10 @@ import java.util.regex.Pattern;
 
 import static com.github.warada_v2.commons.Utils.getExtensionFromUrl;
 
-@JBossLog
 @ApplicationScoped
 public class NettruyenExtractorImpl implements NettruyenExtractor {
+
+    private static final Logger log = Logger.getLogger(NettruyenExtractorImpl.class);
 
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final Pattern LD_JSON_PATTERN = Pattern.compile("<script[^>]*type=[\"']application/ld\\+json[\"'][^>]*>(.*?)</script>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
