@@ -2,6 +2,15 @@
 
 ---
 
+## Unreleased
+
+### Improvements
+- Added feature lomnox-170426 to begin Lombok reduction.
+- Replaced Lombok-based logging annotations with explicit JBoss Logger usage in Quarkus resource, service, messaging, and scheduler classes.
+- Kept runtime logging behavior aligned with the existing implementation while reducing annotation-driven logging.
+
+---
+
 ## v1.0.0 — 2026-03-10
 
 ### Overview
