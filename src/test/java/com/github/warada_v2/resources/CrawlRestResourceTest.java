@@ -2,10 +2,11 @@ package com.github.warada_v2.resources;
 
 import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
 import com.github.warada_v2.models.CrawlNettruyenComicRequest;
+import com.github.warada_v2.models.CrawlProgressEvent;
+import com.github.warada_v2.services.CrawlProgressBroadcaster;
 import com.github.warada_v2.services.CrawlService;
 import io.smallrye.mutiny.Multi;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.sse.OutboundSseEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,6 +21,9 @@ class CrawlRestResourceTest {
 
     @Mock
     CrawlService crawlService;
+
+    @Mock
+    CrawlProgressBroadcaster crawlProgressBroadcaster;
 
     @InjectMocks
     CrawlRestResource crawlRestResource;
@@ -54,14 +58,24 @@ class CrawlRestResourceTest {
     }
 
     @Test
-    void testCrawlChapterByComic() throws Exception {
-        Multi<OutboundSseEvent> mockMulti = mock(Multi.class);
-        when(crawlService.crawlNettruyenSSEChapter("test-slug-123")).thenReturn(mockMulti);
+    void testRetryFailedChapters() {
+        Response response = crawlRestResource.retryFailedChapters("test-slug-123");
 
-        Multi<OutboundSseEvent> result = crawlRestResource.crawlChapterByComic("test-slug-123");
+        assertNotNull(response);
+        assertEquals(200, response.getStatus());
+        assertEquals("Retry queued", response.getEntity());
+        verify(crawlService, times(1)).retryFailedChapters("test-slug-123");
+    }
+
+    @Test
+    void testSubscribeToCrawlProgress() {
+        Multi<CrawlProgressEvent> mockMulti = mock(Multi.class);
+        when(crawlProgressBroadcaster.subscribe("test-slug-123")).thenReturn(mockMulti);
+
+        Multi<CrawlProgressEvent> result = crawlRestResource.subscribeToCrawlProgress("test-slug-123");
 
         assertNotNull(result);
         assertEquals(mockMulti, result);
-        verify(crawlService, times(1)).crawlNettruyenSSEChapter("test-slug-123");
+        verify(crawlProgressBroadcaster, times(1)).subscribe("test-slug-123");
     }
 }

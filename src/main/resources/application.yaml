@@ -60,6 +60,29 @@ quarkus:
     schema-include-directives: true
     log-payload: queryAndVariables  # For debugging
 
+# RabbitMQ Reactive Messaging
+mp:
+  messaging:
+    outgoing:
+      chapter-crawl-out:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: chapter-crawl
+          type: direct
+          durable: true
+        default-routing-key: crawl
+    incoming:
+      chapter-crawl-in:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: chapter-crawl
+          type: direct
+        queue:
+          name: chapter-crawl-queue
+          durable: true
+          routing-keys: crawl
+        concurrency: 3
+
 management:
   endpoints:
     web:
@@ -106,6 +129,11 @@ management:
 
     otel:
       enabled: false
+
+  rabbitmq-host: localhost
+  rabbitmq-port: 5672
+  rabbitmq-username: guest
+  rabbitmq-password: guest
 
   minio:
     secure: false
@@ -193,6 +221,11 @@ management:
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
     endpoint: ${MINIO_ENDPOINT}
+
+  rabbitmq-host: ${RABBITMQ_HOST}
+  rabbitmq-port: ${RABBITMQ_PORT:5672}
+  rabbitmq-username: ${RABBITMQ_USERNAME}
+  rabbitmq-password: ${RABBITMQ_PASSWORD}
 
 "%test-native":
   quarkus:

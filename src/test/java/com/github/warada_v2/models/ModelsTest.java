@@ -56,26 +56,35 @@ class ModelsTest {
     }
 
     @Test
-    void testCrawlNettruyenSSEComic() {
-        CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter chapter = new CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter(
-                1L, com.github.warada_v2.commons.enums.CrawlStatus.INIT, "1"
+    void testCrawlProgressEvent() {
+        CrawlProgressEvent.ChapterProgress chapterProgress = new CrawlProgressEvent.ChapterProgress(
+                1L, "1", com.github.warada_v2.commons.enums.CrawlStatus.INIT, "test-slug"
         );
-        CrawlNettruyenSSEComic comic = new CrawlNettruyenSSEComic(
-                CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD,
+        CrawlProgressEvent event = new CrawlProgressEvent(
+                CrawlProgressEvent.EventType.COMPLETED,
                 "message",
-                chapter
+                chapterProgress
         );
 
-        assertEquals(CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD, comic.type());
-        assertEquals("message", comic.message());
-        assertEquals(chapter, comic.data());
+        assertEquals(CrawlProgressEvent.EventType.COMPLETED, event.type());
+        assertEquals("message", event.message());
+        assertEquals(chapterProgress, event.data());
 
-        assertEquals(1L, chapter.chapterId());
-        assertEquals(com.github.warada_v2.commons.enums.CrawlStatus.INIT, chapter.status());
-        assertEquals("1", chapter.chapterNumber());
+        assertEquals(1L, chapterProgress.chapterId());
+        assertEquals(com.github.warada_v2.commons.enums.CrawlStatus.INIT, chapterProgress.status());
+        assertEquals("1", chapterProgress.chapterNumber());
+        assertEquals("test-slug", chapterProgress.comicSlug());
 
-        assertEquals("add", CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD.value());
-        assertEquals(CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD, CrawlNettruyenSSEComic.CrawlNettruyenSSEType.valueOf("ADD"));
+        assertEquals("completed", CrawlProgressEvent.EventType.COMPLETED.value());
+        assertEquals(CrawlProgressEvent.EventType.COMPLETED, CrawlProgressEvent.EventType.valueOf("COMPLETED"));
+    }
+
+    @Test
+    void testChapterCrawlMessage() {
+        ChapterCrawlMessage message = new ChapterCrawlMessage(1L, "test-slug");
+        assertEquals(1L, message.chapterId());
+        assertEquals("test-slug", message.comicSlug());
+        assertNotNull(message.toString());
     }
 
     @Test

@@ -2,6 +2,8 @@ package com.github.warada_v2.resources;
 
 import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
 import com.github.warada_v2.models.CrawlNettruyenComicRequest;
+import com.github.warada_v2.models.CrawlProgressEvent;
+import com.github.warada_v2.services.CrawlProgressBroadcaster;
 import com.github.warada_v2.services.CrawlService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
@@ -10,11 +12,10 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.sse.OutboundSseEvent;
 import lombok.extern.jbosslog.JBossLog;
 import org.jboss.resteasy.reactive.RestStreamElementType;
 
@@ -25,10 +26,14 @@ public class CrawlRestResource {
     @Inject
     CrawlService crawlService;
 
+    @Inject
+    CrawlProgressBroadcaster crawlProgressBroadcaster;
+
     @POST
     @Path("/nettruyen/comic")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Blocking
     public Response crawlIndividualComic(CrawlNettruyenComicRequest request) throws Exception {
         crawlService.crawlNettruyenComic(request.slugNId());
         return Response.ok("Success").build();
@@ -38,21 +43,28 @@ public class CrawlRestResource {
     @Path("/nettruyen/chapter")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
+    @Blocking
     public Response crawlChapter(CrawlNettruyenChapterRequest request) throws Exception {
         crawlService.crawlNettruyenChapter(request.chapterId());
         return Response.ok("Success").build();
     }
 
+    @POST
+    @Path("/nettruyen/comic/{slug}/retry")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Blocking
+    public Response retryFailedChapters(@PathParam("slug") String comicSlug) {
+        crawlService.retryFailedChapters(comicSlug);
+        return Response.ok("Retry queued").build();
+    }
 
     @GET
-    @Path("/nettruyen/sse/comic")
-    @Blocking
+    @Path("/progress/{comicSlug}")
     @RestStreamElementType("application/json")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.SERVER_SENT_EVENTS)
-    public Multi<OutboundSseEvent> crawlChapterByComic(
-            @QueryParam("slug-n-id") String slugNId
-    ) throws Exception {
-        return crawlService.crawlNettruyenSSEChapter(slugNId);
+    public Multi<CrawlProgressEvent> subscribeToCrawlProgress(
+            @PathParam("comicSlug") String comicSlug
+    ) {
+        return crawlProgressBroadcaster.subscribe(comicSlug);
     }
 }

@@ -1,161 +1,129 @@
-# warada_v2 🎉
+# warada_v2
 
-> ⚠️ **WARNING:** This project is a hobby side project. It is NOT published, NOT production-ready, and NOT recommended for anything serious. If you found this somehow, congratulations — you are either a very curious person or very, very bored. Either way, welcome! 🎊
+Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapter images from NetTruyen, storing metadata in PostgreSQL, and serving images from MinIO.
 
-## What even is this? 🤔
+## Main Features
 
-**warada_v2** is a comic/manga crawler and management system. Basically, it's what happens when a developer thinks *"I should build my own manga reader instead of just using one that already exists."*
+- Crawl comic metadata, tags, thumbnail, and chapters from NetTruyen
+- Queue chapter image crawling through RabbitMQ
+- Stream live crawl progress to frontend clients with Server-Sent Events
+- Browse comics and chapters through GraphQL
+- Manage comics and chapters through REST endpoints
 
-Built on [Quarkus](https://quarkus.io/) — the Supersonic Subatomic Java Framework — because if you're gonna over-engineer a hobby project, you might as well do it with style and blazing-fast startup times.
+## Tech Stack
 
-### Tech Stack (a.k.a. Things I Wanted to Learn)
+- Java 21
+- Quarkus 3
+- PostgreSQL 16
+- Hibernate ORM Panache
+- Liquibase
+- MinIO
+- RabbitMQ
+- GraphQL + REST + SSE
 
-- 🚀 **Quarkus** — Java, but make it fast (and cool)
-- 🐘 **PostgreSQL** — Because SQLite felt too easy
-- 🧬 **Hibernate ORM + Panache** — Less boilerplate, more time to procrastinate
-- 🌐 **GraphQL + REST** — Two APIs because one is never enough
-- 🐳 **Docker** — Containerizing things I could just run locally
-- 📦 **Gradle** — Multi-module build because flat is boring
-- 📊 **Prometheus + Micrometer** — Monitoring a hobby project nobody uses
+## Local Development
 
-### Project Structure (a.k.a. "The Over-Architecture")
+### 1. Start infrastructure
 
-```text
-warada_v2/
-├── application/        # The main entry point. Where everything starts (and hopefully doesn't crash)
-├── db-entities/        # JPA entities — Comic, Chapter, Image (the holy trinity)
-├── repositories/       # Data access layer. Ask nicely and the DB will answer
-├── services/           # Business logic. Currently mostly empty stubs, shh 🤫
-├── resources/          # REST & GraphQL endpoints. Actually useful endpoints go here
-├── commons/            # Shared utilities. Currently a museum of good intentions
-└── configurations/     # Config classes. Because magic constants are a war crime
+```bash
+docker compose up -d
 ```
 
-## Running this Masterpiece 🖥️
+This starts:
+- PostgreSQL on port 5432
+- MinIO on ports 9000 and 9001
+- RabbitMQ on ports 5672 and 15672
 
-### Prerequisites
+### 2. Create the image bucket
 
-- Java 21+ (the future is now, old man)
-- Docker (for PostgreSQL — yes, we containerized the database for a hobby project)
-- A willingness to watch Gradle download half the internet
+Open the MinIO console at <http://localhost:9001> and create a bucket named `warada-images`.
 
-### Step 1: Start the Database (the Real MVP)
+Default local credentials:
+- MinIO user: `admin`
+- MinIO password: `admin123123123123`
 
-```shell
-docker compose -f docker.compose.yaml up -d
-```
+### 3. Run the application
 
-This fires up a PostgreSQL instance.  
-Username: `postgres`  
-Password: `postgres`  
-
-Super secure. Don't deploy this anywhere.
-
-### Step 2: Run in Dev Mode (with Live Reload Magic ✨)
-
-```shell
+```bash
 ./gradlew quarkusDev
 ```
 
-Your app is now running at <http://localhost:8080>.  
-A fancy Dev UI awaits you at <http://localhost:8080/q/dev/>.
+Useful local endpoints:
+- App: <http://localhost:8080>
+- GraphQL UI: <http://localhost:8080/q/graphql-ui>
+- Dev UI: <http://localhost:8080/q/dev/>
+- OpenAPI: <http://localhost:8080/q/openapi>
+- RabbitMQ management: <http://localhost:15672>
 
-Want to poke at the GraphQL API?  
-It's at <http://localhost:8080/graphql> with a playground UI available in dev mode.
+## Async Crawl Flow
 
-### Step 3: Actually Use It
-
-Hit the REST crawl endpoint:
+### Crawl a comic
 
 ```http
-GET http://localhost:8080/api/v1/crawl
+POST /api/v1/crawl/nettruyen/comic
+Content-Type: application/json
+
+{
+  "slugNId": "one-piece-12345"
+}
 ```
 
-*(Spoiler: it currently just says hi. The real crawling is "coming soon™")*
+This will:
+1. Crawl comic metadata and thumbnail
+2. Create chapter records with `INIT` status
+3. Publish chapter crawl jobs to RabbitMQ
 
-Query some comics via GraphQL:
+### Subscribe to live progress
 
-```graphql
-query {
-  comics {
-    title
-    author
-    status
+```http
+GET /api/v1/crawl/progress/{comicSlug}
+Accept: text/event-stream
+```
+
+Example SSE payload:
+
+```json
+{
+  "type": "completed",
+  "message": "Chapter crawled successfully",
+  "data": {
+    "chapterId": 10,
+    "chapterNumber": "10",
+    "status": "FINISHED",
+    "comicSlug": "one-piece-12345"
   }
 }
 ```
 
-*(Spoiler #2: returns hardcoded demo data. Real data is also "coming soon™")*
+Supported event types:
+- `processing`
+- `completed`
+- `failed`
+- `skipped`
 
-## Building for Production (Why Though?) 📦
+### Retry pending chapters
 
-Package it up:
+```http
+POST /api/v1/crawl/nettruyen/comic/{slug}/retry
+```
 
-```shell
+If the comic already has an active crawl job in the queue, the retry request is blocked with `409 Conflict`.
+
+## Build and Test
+
+```bash
 ./gradlew build
+./gradlew test
 ```
 
-Run the jar:
+Build a native image:
 
-```shell
-java -jar build/quarkus-app/quarkus-run.jar
+```bash
+./gradlew buildProdNative
 ```
 
-If you're feeling adventurous and want an über-jar:
+## Notes
 
-```shell
-./gradlew build -Dquarkus.package.jar.type=uber-jar
-java -jar build/*-runner.jar
-```
-
-## Native Executable (Maximum Overkill) ⚡
-
-Want to compile to a native binary?
-
-```shell
-./gradlew build -Dquarkus.native.enabled=true
-```
-
-No GraalVM? No problem, use Docker:
-
-```shell
-./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
-```
-
-Then run it:
-
-```shell
-./build/warada_v2-1.0-SNAPSHOT-runner
-```
-
-Starts in milliseconds. Uses almost no memory. Perfect for a project that runs on exactly zero servers.
-
-## Current Status 🚦
-
-| Feature | Status |
-|--------|--------|
-| Database entities (Comic, Chapter, Image) | ✅ Done |
-| Repositories | ✅ Done |
-| GraphQL API | ✅ Kinda works (returns hello + demo data) |
-| REST API | ✅ Returns a greeting |
-| Services (actual business logic) | 🚧 Coming soon™ |
-| Actual crawling | 🚧 Coming soon™ |
-| Being published | ❌ Not until I change my mind |
-
-## FAQ ❓
-
-**Q: Can I use this in production?**  
-A: lol no
-
-**Q: When will it be finished?**  
-A: When I feel like it. It's a hobby project.
-
-**Q: Why "warada_v2"? What happened to v1?**  
-A: We don't talk about v1.
-
-**Q: Should I star this repo?**  
-A: Absolutely yes, it will make me feel validated 🌟
-
----
-
-*Built with ☕ caffeine, 🎵 lofi music, and the eternal developer delusion that "this weekend project" won't take six months.*
+- SSE progress is currently in-memory per application instance
+- Frontend clients can subscribe at any time and receive live events from that point onward
+- Chapter crawling concurrency is configurable through the RabbitMQ consumer settings in the application config
