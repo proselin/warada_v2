@@ -5,9 +5,11 @@
 ## Unreleased
 
 ### Improvements
-- Added feature lomnox-170426 to begin Lombok reduction.
+- Added feature lomnox-170426 to remove Lombok from the codebase in phased refactors.
 - Replaced Lombok-based logging annotations with explicit JBoss Logger usage in Quarkus resource, service, messaging, and scheduler classes.
-- Kept runtime logging behavior aligned with the existing implementation while reducing annotation-driven logging.
+- Removed Lombok from low-risk enums, exception handling, helper models, and pageable DTO classes.
+- Converted the remaining ORM entities to explicit Java while preserving JPA behavior and existing builder-style call paths.
+- Removed the Lombok dependency from the Gradle build configuration.
 
 ---
 

@@ -1,22 +1,30 @@
-# Feature: lomnox-170426 — Lombok Logging Removal Phase 1
+# Feature: lomnox-170426 — Full Lombok Removal
 
 ## Summary
 
-This feature starts the Lombok reduction effort by removing Lombok-based logging annotations and switching the application to explicit JBoss Logger usage, which is natively aligned with Quarkus.
+This feature completed the full Lombok removal effort in three stages:
+- Phase 1 removed Lombok-based logging annotations and switched the application to explicit JBoss Logger usage aligned with Quarkus.
+- Phase 2 removed Lombok from low-risk supporting classes such as enums, exception types, helper models, and pageable DTOs.
+- Phase 3 converted the remaining ORM entities to explicit Java and removed Lombok from the Gradle build.
 
-The goal of this phase is to reduce annotation-driven logging while keeping behavior unchanged.
+The goal was achieved while preserving runtime behavior and source compatibility.
 
 ## Scope Implemented
 
-### Included in Phase 1
-- remove Lombok logging annotations such as `@JBossLog`
-- replace them with explicit `org.jboss.logging.Logger` fields
-- keep existing log messages and operational behavior intact
+### Completed in Phase 1
+- removed Lombok logging annotations such as `@JBossLog`
+- replaced them with explicit `org.jboss.logging.Logger` fields
+- kept existing log messages and behavior intact
 
-### Not included yet
-- full Lombok dependency removal from the build
-- ORM entity conversion to normal Java classes
-- DTO, enum, and exception cleanup
+### Completed in Phase 2
+- removed Lombok from enum classes
+- replaced exception getters with manual Java methods
+- converted helper models and pageable DTOs to normal Java while preserving compatibility
+
+### Completed in Phase 3
+- converted the remaining ORM entities to explicit Java classes
+- preserved JPA-safe constructors, getters, setters, defaults, and builder-style compatibility
+- removed the Lombok dependency and annotation processor wiring from the Gradle build
 
 ## Why this change
 
@@ -29,12 +37,16 @@ For Quarkus services, explicit JBoss Logger usage provides:
 
 ## Affected areas
 
-The migration was applied to representative resource, service, and scheduler classes, including:
+The migration was applied across the following areas:
 - comic and chapter API resources
 - crawl orchestration services
 - RabbitMQ producer and consumer flow
 - SSE progress broadcasting
 - temp file cleanup scheduler
+- enum and exception support classes
+- extracted helper models and pageable request or response DTOs
+- ORM entity classes and their builder-style construction paths
+- Gradle dependency configuration
 
 ## Implementation pattern
 
@@ -58,23 +70,26 @@ public class CrawlServiceImpl {
 ## Verification status
 
 ### Verified
-- source compilation succeeded with Gradle using the project compile task
+- source compilation succeeded with Gradle
+- test source compilation also succeeded with Gradle
+- targeted model tests passed with 9 passing and 0 failing
 - Lombok logging annotations were removed from the migrated classes
+- Lombok usage was removed from non-entity and entity classes
+- Lombok dependency wiring was removed from the build
 
 ### Current limitation
-- the full test suite is not fully green yet because the local test environment still has Docker or Testcontainers issues and one existing failing assertion
+- the full test suite still reports an environment-related Docker or Testcontainers issue and one existing failing assertion outside the compile validation path
 
 ## Risk classification
 
 | Area | Risk | Status |
 |---|---:|---|
 | Logging migration | Low | Completed |
-| Simple DTO and exception cleanup | Low to medium | Pending |
-| ORM entity conversion | High | Deferred |
+| Simple DTO and exception cleanup | Low to medium | Completed |
+| ORM entity conversion | High | Completed |
 
 ## Recommended next steps
 
-1. remove Lombok from simple supporting classes
-2. verify all remaining Lombok usages by category
-3. handle entity conversion only as a separate focused refactor
-4. remove the Lombok dependency from the build after usage reaches zero
+1. resolve the Docker or Testcontainers environment mismatch for full-suite execution
+2. investigate the existing failing assertion in the chapter service test
+3. keep future model changes aligned with explicit Java patterns instead of reintroducing Lombok
