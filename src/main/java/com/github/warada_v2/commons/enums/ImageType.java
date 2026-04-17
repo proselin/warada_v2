@@ -1,11 +1,9 @@
 package com.github.warada_v2.commons.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
-
 import java.util.Objects;
 
-@Getter
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum ImageType {
     THUMB_IMAGE("THUMB", "Thumb"),
     CHAPTER_IMAGE("CHAPTER_IMAGE", "Chapter");
@@ -16,6 +14,14 @@ public enum ImageType {
     ImageType(String value, String description) {
         this.value = value;
         this.description = description;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     @JsonCreator

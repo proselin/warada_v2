@@ -1,6 +1,7 @@
 package com.github.warada_v2.services;
 
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.jboss.logging.Logger;
 
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.db_entities.Chapter;
@@ -12,11 +13,11 @@ import io.smallrye.common.annotation.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @ApplicationScoped
 public class ChapterCrawlConsumer {
+
+    private static final Logger log = Logger.getLogger(ChapterCrawlConsumer.class);
 
     @Inject
     ChapterRepository chapterRepository;

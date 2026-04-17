@@ -1,17 +1,17 @@
 package com.github.warada_v2.resources;
 
-import com.github.warada_v2.db_entities.Tag;
-import com.github.warada_v2.services.TagService;
-import io.smallrye.common.annotation.Blocking;
-import jakarta.inject.Inject;
-import lombok.extern.jbosslog.JBossLog;
+import java.util.List;
+
 import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
 
-import java.util.List;
+import com.github.warada_v2.db_entities.Tag;
+import com.github.warada_v2.services.TagService;
 
-@JBossLog
+import io.smallrye.common.annotation.Blocking;
+import jakarta.inject.Inject;
+
 @GraphQLApi
 public class TagGqlResource {
 

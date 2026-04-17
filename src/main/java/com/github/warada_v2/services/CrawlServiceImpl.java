@@ -1,5 +1,10 @@
 package com.github.warada_v2.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.commons.enums.ImageType;
 import com.github.warada_v2.configurations.WaradaConfig;
@@ -12,6 +17,7 @@ import com.github.warada_v2.models.ChapterCrawlMessage;
 import com.github.warada_v2.repositories.ChapterRepository;
 import com.github.warada_v2.repositories.ComicRepository;
 import com.github.warada_v2.repositories.ImageRepository;
+
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MinioClient;
@@ -20,14 +26,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import lombok.extern.jbosslog.JBossLog;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@JBossLog
 @ApplicationScoped
 public class CrawlServiceImpl implements CrawlService {
+
+    private static final Logger log = Logger.getLogger(CrawlServiceImpl.class);
 
     @Inject
     ComicRepository comicRepository;

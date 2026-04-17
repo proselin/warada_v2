@@ -3,17 +3,18 @@ package com.github.warada_v2.services;
 import java.util.List;
 
 import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.jboss.logging.Logger;
 
 import com.github.warada_v2.models.ChapterCrawlMessage;
 
 import io.smallrye.reactive.messaging.MutinyEmitter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @ApplicationScoped
 public class ChapterCrawlProducer {
+
+    private static final Logger log = Logger.getLogger(ChapterCrawlProducer.class);
 
     @Inject
     @Channel("chapter-crawl-out")

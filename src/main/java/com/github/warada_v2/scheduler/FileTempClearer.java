@@ -1,25 +1,26 @@
 package com.github.warada_v2.scheduler;
 
-import com.github.warada_v2.configurations.WaradaConfig;
-import io.quarkus.scheduler.Scheduled;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import lombok.extern.jbosslog.JBossLog;
-
-import io.minio.MinioClient;
-import io.minio.ListObjectsArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.messages.Item;
-
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@JBossLog
+import org.jboss.logging.Logger;
+
+import com.github.warada_v2.configurations.WaradaConfig;
+
+import io.minio.ListObjectsArgs;
+import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
+import io.minio.messages.Item;
+import io.quarkus.scheduler.Scheduled;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
 @ApplicationScoped
 public class FileTempClearer {
+
+  private static final Logger log = Logger.getLogger(FileTempClearer.class);
 
   @Inject MinioClient minio;
 

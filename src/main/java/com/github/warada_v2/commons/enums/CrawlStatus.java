@@ -1,8 +1,5 @@
 package com.github.warada_v2.commons.enums;
 
-import lombok.Getter;
-
-@Getter
 public enum CrawlStatus {
     INIT("0000", "Initialize and can crawl"),
     STARTED("0001", "Started crawl and lock for no one can update"),
@@ -14,6 +11,14 @@ public enum CrawlStatus {
     CrawlStatus(String code, String description) {
         this.code = code;
         this.description = description;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public static CrawlStatus fromCode(String code) {

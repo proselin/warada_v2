@@ -1,25 +1,25 @@
 package com.github.warada_v2.resources;
 
+import org.jboss.resteasy.reactive.RestStreamElementType;
+
 import com.github.warada_v2.models.CrawlNettruyenChapterRequest;
 import com.github.warada_v2.models.CrawlNettruyenComicRequest;
 import com.github.warada_v2.models.CrawlProgressEvent;
 import com.github.warada_v2.services.CrawlProgressBroadcaster;
 import com.github.warada_v2.services.CrawlService;
+
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.Multi;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.jbosslog.JBossLog;
-import org.jboss.resteasy.reactive.RestStreamElementType;
 
-@JBossLog
 @Path("/api/v1/crawl")
 public class CrawlRestResource {
 
