@@ -257,7 +257,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
                 List<String> imageUrls = new ArrayList<>();
                 imageUrls.add(matcher.group(1) != null ? matcher.group(1) : "");
                 imageUrls.add(matcher.group(2) != null ? matcher.group(2) : "");
-                extractedImageInfos.add(ExtractedImage.builder().imageUrls(imageUrls).position(index.getAndIncrement()).build());
+                extractedImageInfos.add(new ExtractedImage(imageUrls, null, null, index.getAndIncrement(), null));
             }
         }
 
