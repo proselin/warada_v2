@@ -22,10 +22,10 @@ import jakarta.ws.rs.NotFoundException;
 public class ComicServiceImpl implements ComicService {
     private static final Logger log = Logger.getLogger(ComicServiceImpl.class);
     @Inject
-    ComicRepository comicRepository;
+    private ComicRepository comicRepository;
 
     @Inject
-    TagService tagService;
+    private TagService tagService;
 
     public List<Comic> getPageableComics(PageRequest pageRequest) {
         if (pageRequest == null) {

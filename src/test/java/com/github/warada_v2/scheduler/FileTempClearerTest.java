@@ -1,51 +1,90 @@
 package com.github.warada_v2.scheduler;
 
+import com.github.warada_v2.configurations.WaradaConfig;
 import io.minio.MinioClient;
 import io.minio.Result;
 import io.minio.messages.Item;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.Field;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@QuarkusTest
 class FileTempClearerTest {
 
-    @InjectMock
-    MinioClient minioClient;
+    @Mock
+    private MinioClient minioClient;
 
-    @Inject
-    FileTempClearer fileTempClearer;
+    @Mock
+    private WaradaConfig waradaConfig;
 
-//    @Test
-//    void testCleanTempObjects() throws Exception {
-//        // Create mock results
-//        Item oldItem = Mockito.mock(Item.class);
-//        when(oldItem.isDir()).thenReturn(false);
-//        when(oldItem.objectName()).thenReturn("old-image.jpg");
-//        when(oldItem.lastModified()).thenReturn(ZonedDateTime.now().minusDays(2));
-//
-//        Item recentItem = Mockito.mock(Item.class);
-//        when(recentItem.isDir()).thenReturn(false);
-//        when(recentItem.objectName()).thenReturn("recent-image.jpg");
-//        when(recentItem.lastModified()).thenReturn(ZonedDateTime.now());
-//
-//        Result<Item> res1 = new Result<>(oldItem);
-//        Result<Item> res2 = new Result<>(recentItem);
-//
-//        when(minioClient.listObjects(any())).thenReturn(List.of(res1, res2));
-//
-//        // Let's invoke the method
-//        fileTempClearer.cleanTempObjects();
-//
-//        // Verify removeObject was attempted
-//        Mockito.verify(minioClient, Mockito.atLeastOnce()).removeObject(any());
-//    }
+    @Mock
+    private WaradaConfig.CleanUpTempImages cleanUp;
+
+    private FileTempClearer fileTempClearer;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+        when(waradaConfig.cleanUp()).thenReturn(cleanUp);
+        when(waradaConfig.imageBucketTempPath()).thenReturn("temp");
+        when(waradaConfig.imageBucket()).thenReturn("warada-images");
+
+        fileTempClearer = new FileTempClearer();
+        setField("minio", minioClient);
+        setField("waradaConfig", waradaConfig);
+    }
+
+    @Test
+    void cleanTempObjectsSkipsWhenDisabled() {
+        when(cleanUp.enabled()).thenReturn(false);
+        when(cleanUp.minAgeMinutes()).thenReturn(60);
+
+        fileTempClearer.init();
+        fileTempClearer.cleanTempObjects();
+
+        verify(minioClient, never()).listObjects(any());
+    }
+
+    @Test
+    void cleanTempObjectsDeletesOnlyOldObjects() throws Exception {
+        when(cleanUp.enabled()).thenReturn(true);
+        when(cleanUp.minAgeMinutes()).thenReturn(60);
+
+        Item oldItem = Mockito.mock(Item.class);
+        when(oldItem.isDir()).thenReturn(false);
+        when(oldItem.objectName()).thenReturn("temp/old-image.jpg");
+        when(oldItem.lastModified()).thenReturn(ZonedDateTime.now().minusDays(2));
+
+        Item recentItem = Mockito.mock(Item.class);
+        when(recentItem.isDir()).thenReturn(false);
+        when(recentItem.objectName()).thenReturn("temp/recent-image.jpg");
+        when(recentItem.lastModified()).thenReturn(ZonedDateTime.now());
+
+        Result<Item> res1 = new Result<>(oldItem);
+        Result<Item> res2 = new Result<>(recentItem);
+
+        when(minioClient.listObjects(any())).thenReturn(List.of(res1, res2));
+
+        fileTempClearer.init();
+        fileTempClearer.cleanTempObjects();
+
+        verify(minioClient, times(1)).removeObject(any());
+    }
+
+    private void setField(String fieldName, Object value) throws Exception {
+        Field field = FileTempClearer.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(fileTempClearer, value);
+    }
 }

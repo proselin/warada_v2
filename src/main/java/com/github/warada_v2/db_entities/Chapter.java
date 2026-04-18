@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.converter.CrawlStatusConverter;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -25,7 +26,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "chapters")
-public class Chapter {
+public class Chapter extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "chapter_id_seq")
     @SequenceGenerator(name = "chapter_id_seq", sequenceName = "chapter_id_seq", allocationSize = 1)

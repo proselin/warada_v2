@@ -22,10 +22,10 @@ import jakarta.transaction.Transactional;
 public class ChapterServiceImpl implements ChapterService {
     private static final Logger log = Logger.getLogger(ChapterServiceImpl.class);
     @Inject
-    ChapterRepository chapterRepository;
+    private ChapterRepository chapterRepository;
 
     @Inject
-    ComicRepository comicRepository;
+    private ComicRepository comicRepository;
 
     public Chapter getChapterById(Long id) {
         return chapterRepository.findByIdOptional(id).orElse(null);
