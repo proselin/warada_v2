@@ -1,25 +1,25 @@
 package com.github.warada_v2.repositories;
 
-import com.github.warada_v2.db_entities.Tag;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
-
 import java.util.List;
 import java.util.Optional;
 
-public interface TagRepository extends PanacheRepository<Tag> {
+import com.github.warada_v2.db_entities.Tag;
 
-    /**
-     * Find a tag by its normalized (lowercase) name.
-     */
-    Optional<Tag> findByNormalizedName(String normalizedName);
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import jakarta.enterprise.context.ApplicationScoped;
 
-    /**
-     * Find all tags whose normalized name is in the given list.
-     */
-    List<Tag> findByNormalizedNameIn(List<String> normalizedNames);
+@ApplicationScoped
+public class TagRepository implements PanacheRepository<Tag> {
 
-    /**
-     * Find all tags ordered by comic count descending.
-     */
-    List<Tag> findAllOrderByComicCountDesc();
+    public Optional<Tag> findByNormalizedName(String normalizedName) {
+        return find("normalizedName", normalizedName).firstResultOptional();
+    }
+
+    public List<Tag> findByNormalizedNameIn(List<String> normalizedNames) {
+        return list("normalizedName in ?1", normalizedNames);
+    }
+
+    public List<Tag> findAllOrderByComicCountDesc() {
+        return list("ORDER BY comicCount DESC");
+    }
 }

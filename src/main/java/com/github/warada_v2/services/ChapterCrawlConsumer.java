@@ -20,13 +20,13 @@ public class ChapterCrawlConsumer {
     private static final Logger log = Logger.getLogger(ChapterCrawlConsumer.class);
 
     @Inject
-    ChapterRepository chapterRepository;
+    private ChapterRepository chapterRepository;
 
     @Inject
-    CrawlService crawlService;
+    private CrawlService crawlService;
 
     @Inject
-    CrawlProgressBroadcaster broadcaster;
+    private CrawlProgressBroadcaster broadcaster;
 
     @Incoming("chapter-crawl-in")
     @Blocking

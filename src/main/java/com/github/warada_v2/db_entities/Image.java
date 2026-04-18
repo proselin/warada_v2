@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.warada_v2.commons.enums.ImageType;
 import com.github.warada_v2.converter.ImageTypeConverter;
 
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "images")
-public class Image {
+public class Image extends PanacheEntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "image_id_seq")

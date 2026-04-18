@@ -33,31 +33,31 @@ public class CrawlServiceImpl implements CrawlService {
     private static final Logger log = Logger.getLogger(CrawlServiceImpl.class);
 
     @Inject
-    ComicRepository comicRepository;
+    private ComicRepository comicRepository;
 
     @Inject
-    NettruyenExtractor nettruyenExtractor;
+    private NettruyenExtractor nettruyenExtractor;
 
     @Inject
-    MinioClient minioClient;
+    private MinioClient minioClient;
 
     @Inject
-    WaradaConfig waradaConfig;
+    private WaradaConfig waradaConfig;
 
     @Inject
-    ChapterRepository chapterRepository;
+    private ChapterRepository chapterRepository;
 
     @Inject
-    ImageRepository imageRepository;
+    private ImageRepository imageRepository;
 
     @Inject
-    TagService tagService;
+    private TagService tagService;
 
     @Inject
-    ChapterCrawlProducer chapterCrawlProducer;
+    private ChapterCrawlProducer chapterCrawlProducer;
 
     @Inject
-    CrawlProgressBroadcaster broadcaster;
+    private CrawlProgressBroadcaster broadcaster;
 
     /**
      * @param slugNId slug and id of nettruyen comic
