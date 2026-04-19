@@ -23,37 +23,36 @@ Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapt
 
 ## Local Development
 
-### 1. Start infrastructure
+### Quarkus Dev Services workflow
 
-```bash
-docker compose up -d
-```
-
-This starts:
-- PostgreSQL on port 5432
-- MinIO on ports 9000 and 9001
-- RabbitMQ on ports 5672 and 15672
-
-### 2. Create the image bucket
-
-Open the MinIO console at <http://localhost:9001> and create a bucket named `warada-images`.
-
-Default local credentials:
-- MinIO user: `admin`
-- MinIO password: `admin123123123123`
-
-### 3. Run the application
+Run the application directly:
 
 ```bash
 ./gradlew quarkusDev
 ```
+
+Quarkus Dev Services now provides the local development infrastructure automatically when Docker or Podman is available.
+This project no longer relies on a Compose-based local stack for normal development.
 
 Useful local endpoints:
 - App: <http://localhost:8080>
 - GraphQL UI: <http://localhost:8080/q/graphql-ui>
 - Dev UI: <http://localhost:8080/q/dev/>
 - OpenAPI: <http://localhost:8080/q/openapi>
-- RabbitMQ management: <http://localhost:15672>
+
+> The image bucket is initialized automatically during startup when MinIO is ready.
+>
+> If Dev Services cannot start, verify that Docker or Podman is running and that the local Docker socket is reachable by Testcontainers.
+
+### Dev Services troubleshooting
+
+If startup fails with a Docker API compatibility error, use the project defaults and run:
+
+```bash
+./gradlew quarkusDev
+```
+
+The repository already includes the required compatibility settings for recent Docker versions.
 
 ## Async Crawl Flow
 

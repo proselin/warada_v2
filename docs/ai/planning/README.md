@@ -9,7 +9,7 @@ description: Break down work into actionable tasks and estimate timeline
 ## Milestones
 **What are the major checkpoints?**
 
-- [x] Milestone 1: **Core Infrastructure** — Database schema, Quarkus project setup, Docker Compose
+- [x] Milestone 1: **Core Infrastructure** — Database schema, Quarkus project setup, Dev Services
 - [x] Milestone 2: **Comic Crawling** — NetTruyen extraction, comic + thumbnail persistence
 - [x] Milestone 3: **Chapter Crawling** — Chapter image download, MinIO integration, SSE streaming
 - [x] Milestone 4: **GraphQL API** — Comic, chapter, and image queries with pagination
@@ -23,11 +23,11 @@ description: Break down work into actionable tasks and estimate timeline
 
 ### Phase 1: Foundation ✅
 - [x] Task 1.1: Initialize Quarkus project with Gradle
-- [x] Task 1.2: Set up Docker Compose (PostgreSQL, MinIO)
+- [x] Task 1.2: Set up local development services (PostgreSQL, MinIO)
 - [x] Task 1.3: Create database schema and Liquibase migrations
 - [x] Task 1.4: Define JPA entities (Comic, Chapter, Image)
 - [x] Task 1.5: Implement Panache repositories
-- [x] Task 1.6: Configure MinIO client (CDI producer, config mapping)
+- [x] Task 1.6: Configure MinIO integration, Dev Services, and bucket initialization
 
 ### Phase 2: Core Crawling ✅
 - [x] Task 2.1: Implement NetTruyen REST client (`NettruyenRestService`)
@@ -69,7 +69,7 @@ description: Break down work into actionable tasks and estimate timeline
 **What needs to happen in what order?**
 
 ```
-PostgreSQL + MinIO (Docker Compose)
+PostgreSQL + MinIO (Dev Services)
     └── DB Schema (Liquibase migrations)
         └── JPA Entities + Repositories
             ├── NetTruyen Extractor
@@ -83,11 +83,12 @@ PostgreSQL + MinIO (Docker Compose)
 
 ### External Dependencies
 - NetTruyen website availability and HTML structure consistency
-- MinIO bucket `warada-images` must exist before crawling
+- Docker or Podman must be available locally for Quarkus Dev Services during development
+- The `warada-images` bucket is created automatically during startup
 - Docker/GHCR access for container image publishing
 
 ## Timeline & Estimates
-**Current status as of March 2026:**
+**Current status as of April 2026:**
 
 | Phase | Status | Effort |
 |---|---|---|

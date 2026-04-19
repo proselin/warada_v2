@@ -12,7 +12,7 @@ description: Deployment considerations for the Comic/Chapter CRUD feature
 All CRUD operations use existing tables (`comics`, `chapters`). No new Liquibase changesets are needed.
 
 ### No Configuration Changes Required
-No new `application.yaml` keys. The feature uses existing CDI beans, repositories, and infrastructure.
+No new `application.properties` keys are required. The feature uses existing CDI beans, repositories, and infrastructure.
 
 ### Binary Size Impact
 Minimal — only new Java classes (no new Quarkus extensions added).

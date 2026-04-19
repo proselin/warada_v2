@@ -35,29 +35,27 @@ description: Define monitoring strategy, metrics, alerts, and incident response
 | Tool | Purpose | Status |
 |---|---|---|
 | **OpenTelemetry** | Traces, metrics, logs export | Configured (prod only) |
-| **OTel Collector** | Central telemetry pipeline | Available in compose.yaml (commented) |
+| **OTel Collector** | Central telemetry pipeline | Optional external deployment |
 | **SmallRye Health** | Readiness/liveness probes | Active at `/q/health` |
-| **SmallRye GraphQL Metrics** | GraphQL query metrics | Enabled |
-| **SmallRye GraphQL Tracing** | GraphQL distributed tracing | Enabled |
+| **SmallRye GraphQL Metrics** | GraphQL query metrics | Disabled in current config |
+| **SmallRye GraphQL Tracing** | GraphQL distributed tracing | Disabled in current config |
 | **SmallRye OpenAPI** | API documentation | Active at `/q/openapi` |
 
 ### OpenTelemetry Configuration (Production)
-```yaml
-quarkus.otel:
-  metrics.enabled: true
-  logs.enabled: true
-  traces.enabled: true
-  exporter.otlp:
-    endpoint: ${OTLP_ENDPOINT}   # e.g., http://otel-collector:4317
-    protocol: grpc
+```properties
+quarkus.otel.metrics.enabled=true
+quarkus.otel.logs.enabled=true
+quarkus.otel.traces.enabled=true
+quarkus.otel.exporter.otlp.endpoint=${OTLP_ENDPOINT}
+quarkus.otel.exporter.otlp.protocol=grpc
 ```
 
 ### OTel Collector Pipeline
-The collector is configured in `compose.yaml` with:
+An OpenTelemetry collector can be deployed separately when needed, with:
 - **Receivers:** OTLP (gRPC on 4317, HTTP on 4318)
 - **Processors:** Batch + resource (service.name: `warada`)
-- **Exporters:** Currently `debug` (stdout) — connect to Jaeger/Prometheus/Loki for production
-- **Extensions:** health_check (13133), zpages (55679), pprof (1888)
+- **Exporters:** `debug`, Jaeger, Prometheus, Loki, or another production backend
+- **Extensions:** health_check, zpages, pprof
 
 ## Logging Strategy
 **What do we log and how?**
