@@ -214,9 +214,8 @@ com.github.warada_v2/
 │       ├── CrawlStatus.java      # INIT → STARTED → FINISHED
 │       └── ImageType.java        # THUMB_IMAGE, CHAPTER_IMAGE
 ├── configurations/
-│   ├── MinioConfig.java          # MinIO connection config mapping
-│   ├── MinioClientProducer.java  # CDI producer for MinioClient
-│   └── WaradaConfig.java         # App-specific config (buckets, paths, cleanup)
+│   ├── MinioBucketInitializer.java # Ensures the MinIO bucket exists at startup
+│   └── WaradaConfig.java           # App-specific config (buckets, paths, cleanup)
 ├── converter/
 │   ├── CrawlStatusConverter.java # JPA converter for CrawlStatus enum
 │   └── ImageTypeConverter.java   # JPA converter for ImageType enum
