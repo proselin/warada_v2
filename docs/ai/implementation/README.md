@@ -12,42 +12,34 @@ description: Technical implementation notes, patterns, and code guidelines
 ### Prerequisites
 - **Java 21** (GraalVM recommended for native builds)
 - **Gradle** (wrapper included — use `./gradlew`)
-- **Docker** & **Docker Compose** (for PostgreSQL, MinIO, and OTel Collector)
+- **Docker** or **Podman** (required by Quarkus Dev Services in development)
 - **IDE:** IntelliJ IDEA recommended (with Lombok plugin)
 
 ### Environment Setup
 
-1. **Start infrastructure services:**
-   ```bash
-   docker compose up -d
-   ```
-   This starts:
-   - PostgreSQL 16 on port `5432` (user: `postgres`, password: `postgres`)
-   - MinIO on port `9000` (API) and `9001` (Console)
-
-2. **Create the MinIO bucket:**
-   - Open MinIO Console at `http://localhost:9001`
-   - Login with credentials from `compose.yaml` (default: `admin` / `admin123123123123`)
-   - Create bucket named `warada-images`
-
-3. **Run in dev mode:**
+1. **Run in dev mode:**
    ```bash
    ./gradlew quarkusDev
    ```
-   The application starts at `http://localhost:8080` with:
+   Quarkus Dev Services provisions the required local dependencies automatically for development.
+
+2. **Application endpoints:**
    - Dev UI: `http://localhost:8080/q/dev/`
    - GraphQL UI: `http://localhost:8080/q/graphql-ui`
    - OpenAPI: `http://localhost:8080/q/openapi`
    - Health: `http://localhost:8080/q/health`
 
+3. **MinIO bucket bootstrap:**
+   - The application creates the `warada-images` bucket automatically during startup when MinIO becomes available.
+
 ### Configuration
-Key configuration in `src/main/resources/application.yaml`:
+Key configuration in `src/main/resources/application.properties`:
 
 | Config Key | Description | Dev Default |
 |---|---|---|
-| `quarkus.datasource.jdbc.url` | PostgreSQL JDBC URL | `jdbc:postgresql://localhost:5432/postgres` |
-| `minio.endpoint` | MinIO API endpoint | `http://localhost:9000` |
-| `minio.access-key` / `minio.secret-key` | MinIO credentials | Set in application.yaml |
+| `quarkus.datasource.devservices.enabled` | Enable PostgreSQL Dev Services | `true` in dev |
+| `quarkus.minio.devservices.enabled` | Enable MinIO Dev Services | `true` in dev |
+| `quarkus.rabbitmq.devservices.enabled` | Enable RabbitMQ Dev Services | `true` in dev |
 | `warada.image-bucket` | MinIO bucket name | `warada-images` |
 | `warada.nettruyen.url` | NetTruyen base URL | `https://nettruyenar.com` |
 | `warada.clean-up.enabled` | Enable temp file cleanup | `true` |
@@ -75,7 +67,7 @@ src/main/
 │   ├── scheduler/                   # Scheduled jobs (temp file cleanup)
 │   └── services/                    # Business logic layer
 └── resources/
-    ├── application.yaml             # Multi-profile Quarkus configuration
+    ├── application.properties       # Multi-profile Quarkus configuration
     ├── schema.graphql               # Root GraphQL schema
     ├── graphql/                     # Type-specific GraphQL schemas
     │   ├── comic.graphql
@@ -153,7 +145,8 @@ src/main/
 - **Image Download:** Direct HTTP GET with required headers (Referer, Origin) to bypass hotlink protection
 
 ### MinIO Integration
-- **MinioClient** produced via CDI (`MinioClientProducer`)
+- **MinioClient** is provided by the Quarkus MinIO extension
+- **Startup bootstrap:** `MinioBucketInitializer` ensures the `warada-images` bucket exists when the app starts
 - **Image workflow:** Download → save to `temp/` prefix → move to `images/` prefix
 - **Temp cleanup:** Scheduled job scans and deletes stale temp objects
 
@@ -203,6 +196,6 @@ src/main/
 
 - **No authentication/authorization currently implemented** — APIs are open
 - **Secrets in production:** Database credentials, MinIO keys, and OTLP endpoint are injected via environment variables
-- **Dev credentials:** Hardcoded in `application.yaml` for development convenience (non-sensitive)
+- **Dev configuration:** Stored in `application.properties` with Quarkus Dev Services for local development convenience
 - **Input validation:** Jakarta Validation API dependency included but minimal validation in place
 - **Global error handling:** Stack traces not exposed in API responses (only generic error message)

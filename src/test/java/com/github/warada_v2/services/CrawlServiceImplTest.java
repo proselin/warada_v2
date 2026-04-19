@@ -11,7 +11,6 @@ import com.github.warada_v2.repositories.ChapterRepository;
 import com.github.warada_v2.repositories.ComicRepository;
 import com.github.warada_v2.repositories.ImageRepository;
 import io.minio.MinioClient;
-import jakarta.ws.rs.sse.Sse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -51,7 +50,10 @@ class CrawlServiceImplTest {
     TagService tagService;
 
     @Mock
-    Sse sse;
+    ChapterCrawlProducer chapterCrawlProducer;
+
+    @Mock
+    CrawlProgressBroadcaster broadcaster;
 
     @InjectMocks
     CrawlServiceImpl crawlService;

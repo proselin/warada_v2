@@ -1,5 +1,10 @@
 package com.github.warada_v2.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.commons.enums.ImageType;
 import com.github.warada_v2.configurations.WaradaConfig;
@@ -8,56 +13,51 @@ import com.github.warada_v2.db_entities.Comic;
 import com.github.warada_v2.db_entities.Image;
 import com.github.warada_v2.db_entities.Tag;
 import com.github.warada_v2.exceptions.ConflictException;
-import com.github.warada_v2.models.CrawlNettruyenSSEComic;
+import com.github.warada_v2.models.ChapterCrawlMessage;
 import com.github.warada_v2.repositories.ChapterRepository;
 import com.github.warada_v2.repositories.ComicRepository;
 import com.github.warada_v2.repositories.ImageRepository;
+
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
-import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.sse.OutboundSseEvent;
-import jakarta.ws.rs.sse.Sse;
-import lombok.extern.jbosslog.JBossLog;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
-@JBossLog
 @ApplicationScoped
 public class CrawlServiceImpl implements CrawlService {
 
-    @Inject
-    ComicRepository comicRepository;
+    private static final Logger log = Logger.getLogger(CrawlServiceImpl.class);
 
     @Inject
-    NettruyenExtractor nettruyenExtractor;
+    private ComicRepository comicRepository;
 
     @Inject
-    MinioClient minioClient;
+    private NettruyenExtractor nettruyenExtractor;
 
     @Inject
-    WaradaConfig waradaConfig;
+    private MinioClient minioClient;
 
     @Inject
-    ChapterRepository chapterRepository;
+    private WaradaConfig waradaConfig;
 
     @Inject
-    ImageRepository imageRepository;
+    private ChapterRepository chapterRepository;
 
     @Inject
-    TagService tagService;
+    private ImageRepository imageRepository;
 
     @Inject
-    Sse sse;
+    private TagService tagService;
+
+    @Inject
+    private ChapterCrawlProducer chapterCrawlProducer;
+
+    @Inject
+    private CrawlProgressBroadcaster broadcaster;
 
     /**
      * @param slugNId slug and id of nettruyen comic
@@ -132,6 +132,12 @@ public class CrawlServiceImpl implements CrawlService {
             // Update comic count on each resolved tag
             tagService.incrementComicCount(resolvedTags);
 
+            // Auto-queue all chapters to RabbitMQ for crawling
+            List<ChapterCrawlMessage> messages = comic.getChapters().stream()
+                    .map(ch -> new ChapterCrawlMessage(ch.getId(), slugNId))
+                    .toList();
+            chapterCrawlProducer.sendAll(slugNId, messages);
+
             log.info("DONE Crawling Nettruyen Comic from " + slugNId);
         } catch (Exception e) {
             log.error("ERROR Crawling Nettruyen Comic from " + slugNId);
@@ -157,7 +163,7 @@ public class CrawlServiceImpl implements CrawlService {
     }
 
     @Transactional
-    protected void crawlChapter(Chapter chapter) {
+    public void crawlChapter(Chapter chapter) {
         if (chapter.getCrawlingStatus() != CrawlStatus.INIT) {
             log.warnf("Chapter with id %s is already crawled", chapter.getId());
             return;
@@ -217,59 +223,39 @@ public class CrawlServiceImpl implements CrawlService {
     }
 
     @Override
-    public Multi<OutboundSseEvent> crawlNettruyenSSEChapter(String slugNId) {
-        Comic comic = comicRepository.findBySlugAndComicId(slugNId).orElse(null);
+    public void retryFailedChapters(String comicSlug) {
+        log.infof("[START] Retrying failed chapters for comic: %s", comicSlug);
 
+        if (broadcaster.isActive(comicSlug)) {
+            throw new ConflictException("Comic " + comicSlug + " already has an active crawl job in the queue");
+        }
+
+        Comic comic = comicRepository.findBySlugAndComicId(comicSlug).orElse(null);
         if (comic == null) {
-            throw new NotFoundException("Not found comic slug");
+            throw new NotFoundException("Comic not found: " + comicSlug);
         }
 
-        log.infof("[START] Crawling SSE comic with ID: %s", slugNId);
+        List<Chapter> pendingChapters = chapterRepository.findByComicSlugAndStatusIn(
+                comicSlug, CrawlStatus.INIT, CrawlStatus.STARTED);
 
-        if (comic.getCrawlingStatus() != CrawlStatus.FINISHED) {
-            throw new ConflictException("Crawling Nettruyen Comic " + slugNId + " is crawl on another process");
+        if (pendingChapters.isEmpty()) {
+            log.infof("No failed/pending chapters to retry for comic: %s", comicSlug);
+            return;
         }
-        AtomicInteger counter = new AtomicInteger(0);
-        return Multi.createFrom().iterable(comic.getChapters())
-                .onItem().transform(chapter -> {
-                    CrawlNettruyenSSEComic rs;
-                    switch (chapter.getCrawlingStatus()) {
-                        case STARTED, INIT -> {
-                            log.infof("[ADD] Crawling SSE chapter with ID: %s", chapter.getId());
-                            crawlChapter(chapter);
-                            rs = new CrawlNettruyenSSEComic(
-                                    CrawlNettruyenSSEComic.CrawlNettruyenSSEType.ADD,
-                                    "Added",
-                                    new CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter(
-                                            chapter.getId(),
-                                            chapter.getCrawlingStatus(),
-                                            chapter.getChapterNumber()
-                                    )
-                            );
-                        }
-                        case FINISHED -> {
-                            log.infof("[IGNORE] Crawling SSE chapter with ID: %s", chapter.getId());
-                            rs = new CrawlNettruyenSSEComic(
-                                    CrawlNettruyenSSEComic.CrawlNettruyenSSEType.IGNORE,
-                                    "Ignore -> Chapter already crawled",
-                                    new CrawlNettruyenSSEComic.CrawlNettruyenSSEChapter(
-                                            chapter.getId(),
-                                            chapter.getCrawlingStatus(),
-                                            chapter.getChapterNumber()
-                                    )
-                            );
-                        }
-                        default -> {
-                            return null;
-                        }
-                    }
-                    return sse.newEventBuilder()
-                            .id(String.valueOf(counter.incrementAndGet()))
-                            .name("chapter-update")
-                            .mediaType(MediaType.APPLICATION_JSON_TYPE)
-                            .data(CrawlNettruyenSSEComic.class, rs)
-                            .build();
-                        }
-                ).runSubscriptionOn(Infrastructure.getDefaultExecutor());
+
+        // Reset STARTED chapters back to INIT for re-processing
+        for (Chapter chapter : pendingChapters) {
+            if (chapter.getCrawlingStatus() == CrawlStatus.STARTED) {
+                chapter.setCrawlingStatus(CrawlStatus.INIT);
+                chapterRepository.persistOrUpdate(chapter);
+            }
+        }
+
+        List<ChapterCrawlMessage> messages = pendingChapters.stream()
+                .map(ch -> new ChapterCrawlMessage(ch.getId(), comicSlug))
+                .toList();
+
+        chapterCrawlProducer.sendAll(comicSlug, messages);
+        log.infof("[DONE] Queued %d chapters for retry for comic: %s", messages.size(), comicSlug);
     }
 }

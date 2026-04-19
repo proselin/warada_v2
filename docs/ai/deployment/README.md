@@ -163,7 +163,7 @@ docker run -i --rm -p 8080:8080 \
 ## Secrets Management
 **How do we handle sensitive data?**
 
-- **Development:** Credentials hardcoded in `application.yaml` `%dev` profile (local only)
+- **Development:** Local settings are defined in `application.properties` and backed by Quarkus Dev Services where applicable
 - **Production:** All secrets injected via environment variables:
   - `DB_USERNAME`, `DB_PASSWORD`
   - `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`

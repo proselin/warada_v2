@@ -13,9 +13,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @Path("/api/v1/chapters")
 public class ChapterRestResource {
 

@@ -1,19 +1,23 @@
 package com.github.warada_v2.models;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import lombok.With;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
 public record ExtractedChapters(
-        @With @JsonProperty("data") List<ChapterItem> data
+        @JsonProperty("data") List<ChapterItem> data
 ) {
+    public ExtractedChapters withData(List<ChapterItem> data) {
+        return new ExtractedChapters(data);
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     @RegisterForReflection
     public record ChapterItem(
@@ -40,8 +44,45 @@ public record ExtractedChapters(
             @JsonProperty("image_num") int imageNum,
 
             // not in the source JSON (your own field)
-            @With String originPathParams,
-            @With String originUrl
+            String originPathParams,
+            String originUrl
     ) {
+        public ChapterItem withOriginPathParams(String originPathParams) {
+            return new ChapterItem(
+                    comicId,
+                    chapterId,
+                    chapterName,
+                    chapterSlug,
+                    updatedAt,
+                    chapterNum,
+                    dataCdn,
+                    webp,
+                    reportedAt,
+                    cdnSv,
+                    imageType,
+                    imageNum,
+                    originPathParams,
+                    originUrl
+            );
+        }
+
+        public ChapterItem withOriginUrl(String originUrl) {
+            return new ChapterItem(
+                    comicId,
+                    chapterId,
+                    chapterName,
+                    chapterSlug,
+                    updatedAt,
+                    chapterNum,
+                    dataCdn,
+                    webp,
+                    reportedAt,
+                    cdnSv,
+                    imageType,
+                    imageNum,
+                    originPathParams,
+                    originUrl
+            );
+        }
     }
 }

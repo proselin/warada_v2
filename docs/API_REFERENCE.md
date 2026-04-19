@@ -14,7 +14,8 @@ Base URL (dev): `http://localhost:8080`
   - [Chapters — Delete](#delete-apiv1chaptersid)
   - [Crawl — Trigger Comic Crawl](#post-apiv1crawlnettruyencomic)
   - [Crawl — Trigger Chapter Crawl](#post-apiv1crawlnettruyenchapter)
-  - [Crawl — SSE Chapter Stream](#get-apiv1crawlnettruyenssecomic)
+  - [Crawl — Retry Pending Chapters](#post-apiv1crawlnettruyencomicslugretry)
+  - [Crawl — SSE Progress Stream](#get-apiv1crawlprogresscomicslug)
 - [GraphQL API](#graphql-api)
   - [Queries](#queries)
     - [ping](#ping)
@@ -277,7 +278,12 @@ Delete a chapter by ID.
 ---
 
 ### `POST /api/v1/crawl/nettruyen/comic`
-Trigger a full comic crawl from NetTruyen (scrapes metadata + thumbnail).
+Trigger a full comic crawl from NetTruyen.
+
+This request will:
+- scrape comic metadata and thumbnail
+- create chapter rows with `INIT` status
+- publish chapter crawl jobs to RabbitMQ for asynchronous processing
 
 **Request**
 ```
@@ -285,7 +291,7 @@ Content-Type: application/json
 ```
 ```json
 {
-  "slug-and-id": "one-piece-12345"
+  "slugNId": "one-piece-12345"
 }
 ```
 
@@ -295,12 +301,12 @@ Success
 ```
 
 **Error Responses**
-- `409 Conflict` — Comic with this slug/id already exists
+- `409 Conflict` — comic already exists
 
 ---
 
 ### `POST /api/v1/crawl/nettruyen/chapter`
-Trigger image crawl for a single chapter.
+Trigger a manual crawl for a single chapter by ID.
 
 **Request**
 ```
@@ -308,7 +314,7 @@ Content-Type: application/json
 ```
 ```json
 {
-  "chapter_id": 10
+  "chapterId": 10
 }
 ```
 
@@ -319,33 +325,62 @@ Success
 
 ---
 
-### `GET /api/v1/crawl/nettruyen/sse/comic`
-Stream chapter crawl progress for a comic via Server-Sent Events.
+### `POST /api/v1/crawl/nettruyen/comic/{slug}/retry`
+Re-queue all pending chapters for a comic.
 
-**Query Parameters**
+The server will retry chapters in `INIT` or `STARTED` state. If a crawl job for the same comic is already active in the queue, the request is rejected.
+
+**Path Parameters**
 
 | Param | Type | Description |
 |---|---|---|
-| `slug-n-id` | string | Comic slug+id, e.g. `"one-piece-12345"` |
+| `slug` | string | Comic slug/path param identifier |
+
+**Response `200 OK`**
+```
+Retry queued
+```
+
+**Error Responses**
+- `404 Not Found` — comic does not exist
+- `409 Conflict` — comic already has an active queued crawl
+
+---
+
+### `GET /api/v1/crawl/progress/{comicSlug}`
+Subscribe to live crawl progress via Server-Sent Events.
+
+**Path Parameters**
+
+| Param | Type | Description |
+|---|---|---|
+| `comicSlug` | string | Comic slug/path param identifier |
 
 **Response** — `text/event-stream`
 
-Each SSE event is a JSON object:
+Each event contains a `CrawlProgressEvent` payload:
+
 ```json
 {
-  "type": "ADD",
-  "message": "Chapter 1 crawled successfully",
+  "type": "completed",
+  "message": "Chapter crawled successfully",
   "data": {
     "chapterId": 10,
-    "chapterName": "Chapter 1"
+    "chapterNumber": "10",
+    "status": "FINISHED",
+    "comicSlug": "one-piece-12345"
   }
 }
 ```
 
 | Event `type` | Meaning |
 |---|---|
-| `ADD` | Chapter was crawled and added |
-| `IGNORE` | Chapter was skipped (already finished) |
+| `processing` | Chapter is being processed |
+| `completed` | Chapter finished successfully |
+| `failed` | Chapter processing failed |
+| `skipped` | Chapter was already finished |
+
+> Note: this stream publishes live events only. If a client subscribes in the middle of a crawl, it receives new updates from that point onward.
 
 ---
 

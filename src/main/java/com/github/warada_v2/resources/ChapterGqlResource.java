@@ -14,10 +14,8 @@ import com.github.warada_v2.services.ChapterService;
 
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
-import lombok.extern.jbosslog.JBossLog;
 
 @GraphQLApi
-@JBossLog
 public class ChapterGqlResource {
     @Inject
     ChapterService chapterService;

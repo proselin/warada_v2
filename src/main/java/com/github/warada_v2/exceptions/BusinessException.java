@@ -1,8 +1,5 @@
 package com.github.warada_v2.exceptions;
 
-import lombok.Getter;
-
-@Getter
 public class BusinessException extends RuntimeException {
     private final int statusCode;
 
@@ -16,4 +13,7 @@ public class BusinessException extends RuntimeException {
         this.statusCode = statusCode;
     }
 
+    public int getStatusCode() {
+        return statusCode;
+    }
 }

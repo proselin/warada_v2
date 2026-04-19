@@ -3,6 +3,8 @@ package com.github.warada_v2.services;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.commons.enums.CrawlStatus;
 import com.github.warada_v2.db_entities.Comic;
 import com.github.warada_v2.exceptions.ResourceNotFoundException;
@@ -15,16 +17,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @ApplicationScoped
 public class ComicServiceImpl implements ComicService {
+    private static final Logger log = Logger.getLogger(ComicServiceImpl.class);
     @Inject
-    ComicRepository comicRepository;
+    private ComicRepository comicRepository;
 
     @Inject
-    TagService tagService;
+    private TagService tagService;
 
     public List<Comic> getPageableComics(PageRequest pageRequest) {
         if (pageRequest == null) {

@@ -69,10 +69,25 @@ class ChapterServiceImplTest {
     }
 
     @Test
-    void testGetChapterBySlug() {
-        // Implementation currently returns an empty new Chapter()
+    void testGetChapterBySlugSuccess() {
+        Chapter chapter = new Chapter();
+        chapter.setId(10L);
+        when(chapterRepository.findBySlug("some-slug")).thenReturn(Optional.of(chapter));
+
         Chapter result = chapterService.getChapterBySlug("some-slug");
+
         assertNotNull(result);
-        assertNull(result.getId());
+        assertEquals(10L, result.getId());
+        verify(chapterRepository, times(1)).findBySlug("some-slug");
+    }
+
+    @Test
+    void testGetChapterBySlugNotFound() {
+        when(chapterRepository.findBySlug("missing-slug")).thenReturn(Optional.empty());
+
+        Chapter result = chapterService.getChapterBySlug("missing-slug");
+
+        assertNull(result);
+        verify(chapterRepository, times(1)).findBySlug("missing-slug");
     }
 }

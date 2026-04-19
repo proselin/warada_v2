@@ -1,23 +1,26 @@
 package com.github.warada_v2.services;
 
-import com.github.warada_v2.db_entities.Tag;
-import com.github.warada_v2.repositories.TagRepository;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
-import jakarta.ws.rs.NotFoundException;
-import lombok.extern.jbosslog.JBossLog;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@JBossLog
+import org.jboss.logging.Logger;
+
+import com.github.warada_v2.db_entities.Tag;
+import com.github.warada_v2.repositories.TagRepository;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
+
 @ApplicationScoped
 public class TagServiceImpl implements TagService {
 
+    private static final Logger log = Logger.getLogger(TagServiceImpl.class);
+
     @Inject
-    TagRepository tagRepository;
+    private TagRepository tagRepository;
 
     @Override
     public List<Tag> resolveOrCreateTags(List<String> rawTagNames) {

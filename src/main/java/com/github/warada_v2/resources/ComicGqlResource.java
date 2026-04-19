@@ -6,6 +6,7 @@ import org.eclipse.microprofile.graphql.GraphQLApi;
 import org.eclipse.microprofile.graphql.Mutation;
 import org.eclipse.microprofile.graphql.Name;
 import org.eclipse.microprofile.graphql.Query;
+import org.jboss.logging.Logger;
 
 import com.github.warada_v2.db_entities.Comic;
 import com.github.warada_v2.models.PageRequest;
@@ -14,11 +15,11 @@ import com.github.warada_v2.services.ComicService;
 
 import io.smallrye.common.annotation.Blocking;
 import jakarta.inject.Inject;
-import lombok.extern.jbosslog.JBossLog;
 
-@JBossLog
 @GraphQLApi
 public class ComicGqlResource {
+
+    private static final Logger log = Logger.getLogger(ComicGqlResource.class);
 
     @Inject
     ComicService comicService;
