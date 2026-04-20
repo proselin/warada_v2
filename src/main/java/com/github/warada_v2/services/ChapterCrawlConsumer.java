@@ -20,13 +20,13 @@ public class ChapterCrawlConsumer {
     private static final Logger log = Logger.getLogger(ChapterCrawlConsumer.class);
 
     @Inject
-    private ChapterRepository chapterRepository;
+    ChapterRepository chapterRepository;
 
     @Inject
-    private CrawlService crawlService;
+    CrawlService crawlService;
 
     @Inject
-    private CrawlProgressBroadcaster broadcaster;
+    CrawlProgressBroadcaster broadcaster;
 
     @Incoming("chapter-crawl-in")
     @Blocking
@@ -58,13 +58,16 @@ public class ChapterCrawlConsumer {
             log.infof("[QUEUE] Chapter %d crawled successfully", message.chapterId());
             emitEvent(message, CrawlProgressEvent.EventType.COMPLETED, "Chapter crawled successfully",
                     CrawlStatus.FINISHED);
+            checkAndMarkComplete(message.comicSlug());
         } catch (Exception e) {
-            log.errorf(e, "[QUEUE] Failed to crawl chapter %d", message.chapterId());
+            log.errorf(e, "[QUEUE] Failed to crawl chapter %d for comic %s; rejecting message for broker visibility",
+                    message.chapterId(), message.comicSlug());
             emitEvent(message, CrawlProgressEvent.EventType.FAILED, "Crawl failed: " + e.getMessage(),
                     chapter.getCrawlingStatus());
+            throw e instanceof RuntimeException runtimeException
+                    ? runtimeException
+                    : new RuntimeException("Failed to process chapter crawl message " + message.chapterId(), e);
         }
-
-        checkAndMarkComplete(message.comicSlug());
     }
 
     private void emitEvent(ChapterCrawlMessage message, CrawlProgressEvent.EventType type,

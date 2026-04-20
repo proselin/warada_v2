@@ -20,7 +20,7 @@ public class TagServiceImpl implements TagService {
     private static final Logger log = Logger.getLogger(TagServiceImpl.class);
 
     @Inject
-    private TagRepository tagRepository;
+    TagRepository tagRepository;
 
     @Override
     public List<Tag> resolveOrCreateTags(List<String> rawTagNames) {

@@ -70,14 +70,17 @@ def dockerEnv = [
         'DOCKER_API_VERSION': System.getenv('DOCKER_API_VERSION') ?: dockerApiVersion,
         'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE': System.getenv('TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE') ?: '/var/run/docker.sock'
 ]
+def javaModuleOpens = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
 
 quarkusDev {
     environmentVariables = dockerEnv
+    jvmArgs = javaModuleOpens
 }
 
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
     systemProperty "api.version", dockerApiVersion
+    jvmArgs = javaModuleOpens
     dockerEnv.each { key, value ->
         environment key, value
     }
