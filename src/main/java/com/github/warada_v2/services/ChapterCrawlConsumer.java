@@ -10,6 +10,7 @@ import com.github.warada_v2.models.CrawlProgressEvent;
 import com.github.warada_v2.repositories.ChapterRepository;
 
 import io.smallrye.common.annotation.Blocking;
+import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -31,14 +32,16 @@ public class ChapterCrawlConsumer {
     @Incoming("chapter-crawl-in")
     @Blocking
     @Transactional
-    public void consume(ChapterCrawlMessage message) {
+    public void consume(JsonObject payload) {
+        ChapterCrawlMessage message = payload.mapTo(ChapterCrawlMessage.class);
         log.infof("[QUEUE] Processing chapter %d for comic %s", message.chapterId(), message.comicSlug());
 
         Chapter chapter = chapterRepository.findByIdOptional(message.chapterId()).orElse(null);
         if (chapter == null) {
-            log.errorf("Chapter %d not found, skipping", message.chapterId());
+            log.errorf("[QUEUE] Chapter %d for comic %s was not found while consuming the message",
+                    message.chapterId(), message.comicSlug());
             emitEvent(message, CrawlProgressEvent.EventType.FAILED, "Chapter not found", null);
-            return;
+            throw new IllegalStateException("Queued chapter not found: " + message.chapterId());
         }
 
         if (chapter.getCrawlingStatus() == CrawlStatus.FINISHED) {

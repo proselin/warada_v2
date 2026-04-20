@@ -71,10 +71,11 @@ def dockerEnv = [
         'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE': System.getenv('TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE') ?: '/var/run/docker.sock'
 ]
 def javaModuleOpens = ['--add-opens=java.base/java.lang=ALL-UNNAMED']
+def quarkusDevJvmArgs = javaModuleOpens + ['-Ddebug=false']
 
 quarkusDev {
     environmentVariables = dockerEnv
-    jvmArgs = javaModuleOpens
+    jvmArgs = quarkusDevJvmArgs
 }
 
 test {

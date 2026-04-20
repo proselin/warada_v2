@@ -1,30 +1,47 @@
 package com.github.warada_v2.services;
 
-import com.github.warada_v2.commons.enums.CrawlStatus;
-import com.github.warada_v2.configurations.WaradaConfig;
-import com.github.warada_v2.db_entities.Chapter;
-import com.github.warada_v2.db_entities.Comic;
-import com.github.warada_v2.db_entities.Image;
-import com.github.warada_v2.exceptions.ConflictException;
-import com.github.warada_v2.models.*;
-import com.github.warada_v2.repositories.ChapterRepository;
-import com.github.warada_v2.repositories.ComicRepository;
-import com.github.warada_v2.repositories.ImageRepository;
-import io.minio.MinioClient;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.eq;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import org.mockito.MockitoAnnotations;
+
+import com.github.warada_v2.commons.enums.CrawlStatus;
+import com.github.warada_v2.configurations.WaradaConfig;
+import com.github.warada_v2.db_entities.Chapter;
+import com.github.warada_v2.db_entities.Comic;
+import com.github.warada_v2.exceptions.ConflictException;
+import com.github.warada_v2.models.ExtractedChapterDetail;
+import com.github.warada_v2.models.ExtractedChapters;
+import com.github.warada_v2.models.ExtractedComicDetail;
+import com.github.warada_v2.models.ExtractedNettruyenComic;
+import com.github.warada_v2.models.ExtractedThumbImage;
+import com.github.warada_v2.repositories.ChapterRepository;
+import com.github.warada_v2.repositories.ComicRepository;
+import com.github.warada_v2.repositories.ImageRepository;
+
+import io.minio.MinioClient;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 
 class CrawlServiceImplTest {
 
@@ -54,6 +71,9 @@ class CrawlServiceImplTest {
 
     @Mock
     CrawlProgressBroadcaster broadcaster;
+
+    @Mock
+    TransactionSynchronizationRegistry transactionSynchronizationRegistry;
 
     @InjectMocks
     CrawlServiceImpl crawlService;
@@ -97,6 +117,45 @@ class CrawlServiceImplTest {
 
         verify(comicRepository, times(1)).persistAndFlush(any(Comic.class));
         verify(tagService, times(1)).incrementComicCount(anyList());
+    }
+
+    @Test
+    void testCrawlNettruyenComicQueuesOnlyAfterCommit() throws Exception {
+        String slugNId = "queued-comic-456";
+        when(comicRepository.existedBySlugAndComicId(slugNId)).thenReturn(false);
+
+        ExtractedNettruyenComic.Author author = new ExtractedNettruyenComic.Author("Person", "Jane Doe");
+        ExtractedNettruyenComic comicInfo = new ExtractedNettruyenComic(
+                "context", "type", "Queued Title", "Alt", "http://url", "image.jpg",
+                author, List.of("Action"), "Desc", "2023", "2023", 456L, "queued-comic"
+        );
+
+        ExtractedChapters.ChapterItem chapterItem = new ExtractedChapters.ChapterItem(
+                456L, 1001L, "Chapter 1", "chapter-1", LocalDateTime.now(), 1, 0, 0,
+                LocalDateTime.now(), 0, "jpg", 12, "chapter-1", "http://chapter"
+        );
+
+        ExtractedComicDetail detail = new ExtractedComicDetail(
+                comicInfo,
+                new ExtractedChapters(List.of(chapterItem)),
+                new ExtractedThumbImage("http://url", "test.jpg", "temp/test.jpg")
+        );
+
+        when(nettruyenExtractor.extractComicDetail(slugNId)).thenReturn(detail);
+        when(tagService.resolveOrCreateTags(anyList())).thenReturn(Collections.emptyList());
+        when(waradaConfig.imageBucketImagesPath()).thenReturn("images");
+        when(waradaConfig.imageBucket()).thenReturn("warada-images");
+        when(transactionSynchronizationRegistry.getTransactionKey()).thenReturn(new Object());
+
+        crawlService.crawlNettruyenComic(slugNId);
+
+        ArgumentCaptor<Synchronization> synchronizationCaptor = ArgumentCaptor.forClass(Synchronization.class);
+        verify(transactionSynchronizationRegistry).registerInterposedSynchronization(synchronizationCaptor.capture());
+        verify(chapterCrawlProducer, never()).sendAll(eq(slugNId), anyList());
+
+        synchronizationCaptor.getValue().afterCompletion(Status.STATUS_COMMITTED);
+
+        verify(chapterCrawlProducer).sendAll(eq(slugNId), anyList());
     }
 
     @Test

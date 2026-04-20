@@ -24,6 +24,9 @@ import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
@@ -58,6 +61,9 @@ public class CrawlServiceImpl implements CrawlService {
 
     @Inject
     CrawlProgressBroadcaster broadcaster;
+
+    @Inject
+    TransactionSynchronizationRegistry transactionSynchronizationRegistry;
 
     /**
      * @param slugNId slug and id of nettruyen comic
@@ -132,11 +138,11 @@ public class CrawlServiceImpl implements CrawlService {
             // Update comic count on each resolved tag
             tagService.incrementComicCount(resolvedTags);
 
-            // Auto-queue all chapters to RabbitMQ for crawling
+            // Auto-queue all chapters to RabbitMQ for crawling after the DB transaction commits
             List<ChapterCrawlMessage> messages = comic.getChapters().stream()
                     .map(ch -> new ChapterCrawlMessage(ch.getId(), slugNId))
                     .toList();
-            chapterCrawlProducer.sendAll(slugNId, messages);
+            queueChaptersAfterCommit(slugNId, messages);
 
             log.info("DONE Crawling Nettruyen Comic from " + slugNId);
         } catch (Exception e) {
@@ -222,7 +228,42 @@ public class CrawlServiceImpl implements CrawlService {
         return waradaConfig.imageBucketImagesPath() + "/" + fileName;
     }
 
+    private void queueChaptersAfterCommit(String comicSlug, List<ChapterCrawlMessage> messages) {
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        if (transactionSynchronizationRegistry.getTransactionKey() == null) {
+            log.infof("[QUEUE] No active transaction; queueing %d chapters for comic %s immediately",
+                    messages.size(), comicSlug);
+            chapterCrawlProducer.sendAll(comicSlug, messages);
+            return;
+        }
+
+        log.infof("[QUEUE] Scheduling %d chapters for comic %s after transaction commit",
+                messages.size(), comicSlug);
+        transactionSynchronizationRegistry.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {
+                // no-op
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status == Status.STATUS_COMMITTED) {
+                    log.infof("[QUEUE] Transaction committed; queueing %d chapters for comic %s",
+                            messages.size(), comicSlug);
+                    chapterCrawlProducer.sendAll(comicSlug, messages);
+                } else {
+                    log.warnf("[QUEUE] Skipping queue publish for comic %s because transaction finished with status %d",
+                            comicSlug, status);
+                }
+            }
+        });
+    }
+
     @Override
+    @Transactional
     public void retryFailedChapters(String comicSlug) {
         log.infof("[START] Retrying failed chapters for comic: %s", comicSlug);
 
@@ -255,7 +296,7 @@ public class CrawlServiceImpl implements CrawlService {
                 .map(ch -> new ChapterCrawlMessage(ch.getId(), comicSlug))
                 .toList();
 
-        chapterCrawlProducer.sendAll(comicSlug, messages);
-        log.infof("[DONE] Queued %d chapters for retry for comic: %s", messages.size(), comicSlug);
+        queueChaptersAfterCommit(comicSlug, messages);
+        log.infof("[DONE] Scheduled %d chapters for retry for comic: %s", messages.size(), comicSlug);
     }
 }

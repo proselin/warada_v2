@@ -18,6 +18,8 @@ import com.github.warada_v2.db_entities.Chapter;
 import com.github.warada_v2.models.ChapterCrawlMessage;
 import com.github.warada_v2.repositories.ChapterRepository;
 
+import io.vertx.core.json.JsonObject;
+
 class ChapterCrawlConsumerTest {
 
     @Mock
@@ -38,6 +40,15 @@ class ChapterCrawlConsumerTest {
     }
 
     @Test
+    void testConsumeThrowsWhenChapterIsMissing() {
+        ChapterCrawlMessage message = new ChapterCrawlMessage(404L, "missing-comic");
+
+        when(chapterRepository.findByIdOptional(404L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> consumer.consume(JsonObject.mapFrom(message)));
+    }
+
+    @Test
     void testConsumeRethrowsWhenChapterCrawlFails() {
         Chapter chapter = new Chapter();
         chapter.setId(42L);
@@ -52,7 +63,7 @@ class ChapterCrawlConsumerTest {
         RuntimeException failure = new RuntimeException("boom");
         org.mockito.Mockito.doThrow(failure).when(crawlService).crawlChapter(chapter);
 
-        assertThrows(RuntimeException.class, () -> consumer.consume(message));
+        assertThrows(RuntimeException.class, () -> consumer.consume(JsonObject.mapFrom(message)));
         verify(broadcaster, atLeastOnce()).emit(any(), any());
     }
 }
