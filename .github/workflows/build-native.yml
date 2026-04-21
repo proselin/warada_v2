@@ -67,13 +67,20 @@ jobs:
       - name: Build native binary — ${{ matrix.service }}
         run: ./gradlew :${{ matrix.service }}:build -Dquarkus.profile=prod -x test
 
-      - name: Build Docker image — ${{ matrix.service }}
-        run: |
-          docker build \
-            -f src/apps/${{ matrix.service }}/src/main/docker/Dockerfile.native-micro \
-            -t ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}-native-micro \
-            src/apps/${{ matrix.service }}/
+      - name: Extract Docker metadata — ${{ matrix.service }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.VERSION }}-native-micro
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Push Docker image — ${{ matrix.service }}
-        run: |
-          docker push ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service }}:${{ steps.version.outputs.VERSION }}-native-micro
+      - name: Build and push Docker image — ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: src/apps/${{ matrix.service }}/
+          file: src/apps/${{ matrix.service }}/src/main/docker/Dockerfile.native-micro
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
