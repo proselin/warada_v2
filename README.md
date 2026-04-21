@@ -23,36 +23,55 @@ Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapt
 
 ## Local Development
 
-### Quarkus Dev Services workflow
+### Preferred workflow: devcontainer + Docker Compose
 
-Run the application directly:
+This repository now prefers a shared devcontainer setup for daily development instead of auto-starting Quarkus Dev Services.
+The same setup can be used from both VS Code and IntelliJ IDEA.
+
+#### Option 1: VS Code
+
+1. Install Docker Desktop or Docker Engine with Compose support.
+2. Open the repository in VS Code.
+3. Choose **Dev Containers: Reopen in Container**.
+4. Inside the container, start the app:
 
 ```bash
 ./gradlew quarkusDev
 ```
 
-Quarkus Dev Services now provides the local development infrastructure automatically when Docker or Podman is available.
-This project no longer relies on a Compose-based local stack for normal development.
+#### Option 2: IntelliJ IDEA
+
+1. Use IntelliJ IDEA with Dev Container support enabled.
+2. Open the repository and select the existing devcontainer configuration from the project.
+3. Start the workspace container.
+4. Run the backend from the container terminal or Gradle tool window:
+
+```bash
+./gradlew quarkusDev
+```
+
+#### Manual fallback without a devcontainer
+
+You can still run the local services first and keep the app on the host machine:
+
+```bash
+docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
+./gradlew quarkusDev
+```
+
+If a host port is already in use, create a local [.devcontainer/.env.example](.devcontainer/.env.example) copy named .devcontainer/.env and adjust the exposed ports.
 
 Useful local endpoints:
 - App: <http://localhost:8080>
 - GraphQL UI: <http://localhost:8080/q/graphql-ui>
 - Dev UI: <http://localhost:8080/q/dev/>
 - OpenAPI: <http://localhost:8080/q/openapi>
+- RabbitMQ UI: <http://localhost:15672>
+- MinIO Console: <http://localhost:9001>
 
-> The image bucket is initialized automatically during startup when MinIO is ready.
+> The MinIO bucket is still initialized automatically by the application at startup.
 >
-> If Dev Services cannot start, verify that Docker or Podman is running and that the local Docker socket is reachable by Testcontainers.
-
-### Dev Services troubleshooting
-
-If startup fails with a Docker API compatibility error, use the project defaults and run:
-
-```bash
-./gradlew quarkusDev
-```
-
-The repository already includes the required compatibility settings for recent Docker versions.
+> The previous Dev Services properties are intentionally kept as comments in the app config so newer developers can learn the difference between both approaches.
 
 ## Async Crawl Flow
 
