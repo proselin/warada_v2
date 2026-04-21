@@ -20,9 +20,10 @@ description: Phased plan for decomposing warada_v2 monolith into crawl-service, 
 ## Task Breakdown
 
 ### Phase 0: Preparation
-- [ ] Task 0.1: Create `settings.gradle` with `include 'shared-lib', 'crawl-service', 'core-service', 'display-service'`
-- [ ] Task 0.2: Move current monolith source into a `legacy/` directory (do not delete yet — reference during migration)
-- [ ] Task 0.3: Create root `build.gradle` with shared Java/Lombok conventions
+- [x] Task 0.1: Create `settings.gradle` with subproject includes and `projectDir` mappings
+- [x] Task 0.2: Move current monolith source into `legacy/src/` (reference during migration)
+- [x] Task 0.3: Create root `build.gradle` with shared Java/Lombok conventions
+- [x] Task 0.4: Move services to `src/apps/` and shared library to `src/libs/`
 
 ### Phase 1: shared-lib
 - [ ] Task 1.1: Create `shared-lib/build.gradle` (java-library, no Quarkus plugin)

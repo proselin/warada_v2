@@ -11,13 +11,13 @@ pluginManagement {
 rootProject.name = 'warada_v2'
 
 include 'shared-lib'
-project(':shared-lib').projectDir = file('libs/shared-lib')
+project(':shared-lib').projectDir = file('src/libs/shared-lib')
 
 include 'crawl-service'
-project(':crawl-service').projectDir = file('apps/crawl-service')
+project(':crawl-service').projectDir = file('src/apps/crawl-service')
 
 include 'core-service'
-project(':core-service').projectDir = file('apps/core-service')
+project(':core-service').projectDir = file('src/apps/core-service')
 
 include 'display-service'
-project(':display-service').projectDir = file('apps/display-service')
+project(':display-service').projectDir = file('src/apps/display-service')

@@ -85,7 +85,7 @@ graph TD
 A plain Java library (no Quarkus plugin). All other modules depend on it.
 
 ```
-shared-lib/src/main/java/com/github/warada_v2/shared/
+src/libs/shared-lib/src/main/java/com/github/warada_v2/shared/
 ├── entities/
 │   ├── Comic.java              # JPA @Entity
 │   ├── Chapter.java
@@ -132,7 +132,7 @@ dependencies {
 
 **Package structure**:
 ```
-crawl-service/src/main/java/com/github/warada_v2/crawl/
+src/apps/crawl-service/src/main/java/com/github/warada_v2/crawl/
 ├── CrawlApplication.java
 ├── resources/
 │   ├── CrawlRestResource.java         # POST /api/v1/crawl/nettruyen/comic
@@ -165,7 +165,7 @@ crawl-service/src/main/java/com/github/warada_v2/crawl/
 
 **Package structure**:
 ```
-core-service/src/main/java/com/github/warada_v2/core/
+src/apps/core-service/src/main/java/com/github/warada_v2/core/
 ├── CoreApplication.java
 ├── resources/
 │   └── InternalResource.java          # GET /internal/comics/exists, /internal/chapters/{id}
@@ -199,7 +199,7 @@ core-service/src/main/java/com/github/warada_v2/core/
 
 **Package structure**:
 ```
-display-service/src/main/java/com/github/warada_v2/display/
+src/apps/display-service/src/main/java/com/github/warada_v2/display/
 ├── DisplayApplication.java
 ├── resources/
 │   ├── ComicGqlResource.java

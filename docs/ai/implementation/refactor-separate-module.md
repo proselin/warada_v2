@@ -9,6 +9,9 @@ description: Key implementation details, code patterns, and gotchas for the mult
 ## Gradle Multi-Module Setup
 
 ### Root `settings.gradle`
+
+All modules live under `src/`. Services in `src/apps/`, shared libraries in `src/libs/`. The monolith source is preserved under `legacy/src/`.
+
 ```groovy
 pluginManagement {
     repositories {
@@ -19,10 +22,18 @@ pluginManagement {
 }
 
 rootProject.name = 'warada_v2'
+
 include 'shared-lib'
+project(':shared-lib').projectDir = file('src/libs/shared-lib')
+
 include 'crawl-service'
+project(':crawl-service').projectDir = file('src/apps/crawl-service')
+
 include 'core-service'
+project(':core-service').projectDir = file('src/apps/core-service')
+
 include 'display-service'
+project(':display-service').projectDir = file('src/apps/display-service')
 ```
 
 ### Root `build.gradle` (conventions only — no `quarkus` plugin at root level)
