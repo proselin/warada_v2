@@ -103,14 +103,6 @@ compileTestJava {
 
 tasks.register("buildProdNative") {
     group = "build"
-    description = "Build Quarkus native image for PROD"
-
-    dependsOn("clean", "build")
-
-    doFirst {
-        System.setProperty("quarkus.profile", "prod")
-        System.setProperty("quarkus.package.type", "native")
-        System.setProperty("quarkus.native.container-build", "true")
-
-    }
+    description = "Builds native binaries for all services. Run with: ./gradlew buildProdNative -Dquarkus.profile=prod"
+    dependsOn ':core-service:build', ':crawl-service:build', ':display-service:build'
 }
