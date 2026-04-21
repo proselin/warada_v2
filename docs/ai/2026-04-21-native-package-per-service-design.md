@@ -34,8 +34,7 @@ warada_v2/
 │   │   ├── build.gradle              ← native config via prod profile
 │   │   └── src/main/docker/
 │   │       ├── Dockerfile.native          ← ubi8/ubi-minimal base
-│   │       ├── Dockerfile.native-micro    ← quarkus-micro-image base (~10MB)
-│   │       └── Dockerfile.ubi-minimal     ← explicit ubi variant alias
+│   │       └── Dockerfile.native-micro    ← quarkus-micro-image base (~10MB, production default)
 │   ├── crawl-service/                ← same structure
 │   └── display-service/              ← same structure
 ├── scripts/
@@ -57,7 +56,7 @@ warada_v2/
 
 ### 1. Gradle Build Configuration
 
-**Per-service `build.gradle`** — each service includes native Quarkus properties that activate on the `prod` profile:
+**Per-service `application.properties`** — native Quarkus properties activate on the `prod` profile:
 
 ```properties
 # In application.properties for each service
@@ -67,26 +66,29 @@ warada_v2/
 %prod.quarkus.package.jar.enabled=false
 ```
 
-**Build invocation** per service:
-```bash
-# Native binary only
-./gradlew :crawl-service:build -Dquarkus.profile=prod
+**Build invocation** per service — pass `quarkus.profile=prod` as a JVM system property to the Gradle process (Quarkus Gradle plugin reads it at configuration time):
 
-# Or via system property in Gradle
-./gradlew :core-service:build -Pquarkus.profile=prod
+```bash
+# Native binary for one service
+./gradlew :crawl-service:build -Dquarkus.profile=prod
 ```
 
-**Root `build.gradle`** — adds aggregation task:
+**Root `build.gradle`** — the existing broken `buildProdNative` task (which uses `System.setProperty` in `doFirst` — too late for the Quarkus Gradle plugin to read) must be **replaced** with:
 ```groovy
 tasks.register('buildProdNative') {
+    group = 'build'
+    description = 'Builds native binaries for all services. Run with -Dquarkus.profile=prod'
     dependsOn ':core-service:build', ':crawl-service:build', ':display-service:build'
-    // Passes prod profile to all subprojects
 }
 ```
 
-### 2. Dockerfiles (per service, 3 variants)
+Usage: `./gradlew buildProdNative -Dquarkus.profile=prod`
+
+### 2. Dockerfiles (per service, 2 variants)
 
 All Dockerfiles live in `src/apps/<service>/src/main/docker/`.
+
+The Docker build context is set to the service subdirectory (`src/apps/<service>/`) so that `COPY build/*-runner` resolves correctly relative to the service's own `build/` output directory.
 
 **`Dockerfile.native`** — uses `ubi8/ubi-minimal`:
 ```dockerfile
@@ -110,9 +112,16 @@ USER 1001
 CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
 ```
 
-**`Dockerfile.ubi-minimal`** — explicit alias to `ubi8/ubi-minimal` (same as `Dockerfile.native`, kept as a named variant for clarity in CI matrix).
+Docker build invocation (from project root):
+```bash
+docker build -f src/apps/crawl-service/src/main/docker/Dockerfile.native-micro \
+  -t ghcr.io/proselin/warada_v2/crawl-service:<version>-native-micro \
+  src/apps/crawl-service/
+```
 
-**`docker-compose.yml`** — updated service `build.dockerfile` entries to reference `Dockerfile.native-micro` per service.
+**`docker-compose.yml`** — updated service `build` entries to use correct paths (`src/apps/<service>/src/main/docker/Dockerfile.native-micro`) and context (`src/apps/<service>/`).
+
+> **Note:** Updating `docker-compose.yml` to native images makes it production-only. A separate `docker-compose.dev.yml` will retain `Dockerfile.jvm` entries for local development (hot reload, remote debug). Use `docker compose -f docker-compose.yml -f docker-compose.dev.yml up` for local dev.
 
 ### 3. Shell Scripts
 
@@ -120,6 +129,8 @@ All scripts follow the existing pattern in `scripts/`:
 - Accept `<version>` as `$1` (required)
 - Use `GHCR_REGISTRY=ghcr.io/proselin/warada_v2`
 - Tag images as `<service-name>:<version>-native-micro`
+
+**Old flat scripts** (`scripts/build-native.sh`, `scripts/build-native-micro.sh`, `scripts/build-and-push-native.sh`, `scripts/build-and-push-native-micro.sh`) reference the now-deleted monolithic `src/main/docker/` path and must be **deleted** as part of this implementation.
 
 **Per-service scripts:**
 
@@ -143,18 +154,18 @@ scripts/build-all-native.sh <version>
 - `push` to `main` branch
 - `workflow_dispatch` with optional `version` input (defaults to `git SHA short`)
 
-**Strategy:** `matrix` with `service: [core-service, crawl-service, display-service]` — runs all 3 in parallel.
+**Strategy:** `matrix` with `service: [core-service, crawl-service, display-service]` — runs all 3 in parallel with `fail-fast: false` so one service failure does not cancel others.
 
 **Job steps per service:**
 1. `actions/checkout@v4`
-2. `actions/setup-java@v4` with `distribution: temurin`, `java-version: 21`
+2. `actions/setup-java@v4` with `distribution: temurin`, `java-version: 21` (GraalVM not needed — native compilation runs inside Docker via `container-build=true`)
 3. Cache Gradle wrapper and caches
-4. `./gradlew :<service>:build -Dquarkus.profile=prod`
-5. `docker build -f src/apps/<service>/src/main/docker/Dockerfile.native-micro -t ghcr.io/proselin/warada_v2/<service>:<version>-native-micro`
-6. `docker login ghcr.io` using `GHCR_TOKEN` secret
+4. `docker/login-action` using `GHCR_TOKEN_CICD` secret (must precede push)
+5. `./gradlew :<service>:build -Dquarkus.profile=prod -x test`
+6. `docker build -f src/apps/<service>/src/main/docker/Dockerfile.native-micro -t ghcr.io/proselin/warada_v2/<service>:<version>-native-micro src/apps/<service>/`
 7. `docker push`
 
-**Required secrets:** `GHCR_TOKEN` (GitHub personal access token with `write:packages` scope).
+**Required secrets:** `GHCR_TOKEN_CICD` (existing secret — GitHub personal access token with `write:packages` scope).
 
 ---
 
@@ -170,7 +181,7 @@ scripts/build-all-native.sh <version>
 
 - **Smoke test (local):** After native build, run `./build/*-runner` and hit the `/q/health` endpoint.
 - **Docker smoke test:** `docker run --rm -p 8080:8080 <image>` + `curl http://localhost:8080/q/health`.
-- **CI:** Health check step in the GitHub Actions workflow after image start.
+- **CI:** No automated health check in the CI workflow (native build takes 10–30 min; health probes are deferred to staging environment after deploy).
 
 ---
 
