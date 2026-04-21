@@ -9,3 +9,8 @@ pluginManagement {
     }
 }
 rootProject.name = 'warada_v2'
+
+include 'shared-lib'
+include 'crawl-service'
+include 'core-service'
+include 'display-service'
