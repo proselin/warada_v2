@@ -10,6 +10,9 @@ import com.github.warada_v2.models.CrawlProgressEvent;
 import com.github.warada_v2.repositories.ChapterRepository;
 
 import io.smallrye.common.annotation.Blocking;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -31,14 +34,16 @@ public class ChapterCrawlConsumer {
     @Incoming("chapter-crawl-in")
     @Blocking
     @Transactional
-    public void consume(ChapterCrawlMessage message) {
+    public void consume(Object payload) {
+        ChapterCrawlMessage message = toMessage(payload);
         log.infof("[QUEUE] Processing chapter %d for comic %s", message.chapterId(), message.comicSlug());
 
         Chapter chapter = chapterRepository.findByIdOptional(message.chapterId()).orElse(null);
         if (chapter == null) {
-            log.errorf("Chapter %d not found, skipping", message.chapterId());
-            emitEvent(message, CrawlProgressEvent.EventType.FAILED, "Chapter not found", null);
-            return;
+            String errorMessage = "Chapter %d not found".formatted(message.chapterId());
+            log.error(errorMessage);
+            emitEvent(message, CrawlProgressEvent.EventType.FAILED, errorMessage, null);
+            throw new IllegalStateException(errorMessage);
         }
 
         if (chapter.getCrawlingStatus() == CrawlStatus.FINISHED) {
@@ -49,7 +54,6 @@ public class ChapterCrawlConsumer {
             return;
         }
 
-        // Emit processing event
         emitEvent(message, CrawlProgressEvent.EventType.PROCESSING, "Processing chapter",
                 chapter.getCrawlingStatus());
 
@@ -58,13 +62,27 @@ public class ChapterCrawlConsumer {
             log.infof("[QUEUE] Chapter %d crawled successfully", message.chapterId());
             emitEvent(message, CrawlProgressEvent.EventType.COMPLETED, "Chapter crawled successfully",
                     CrawlStatus.FINISHED);
+            checkAndMarkComplete(message.comicSlug());
         } catch (Exception e) {
             log.errorf(e, "[QUEUE] Failed to crawl chapter %d", message.chapterId());
             emitEvent(message, CrawlProgressEvent.EventType.FAILED, "Crawl failed: " + e.getMessage(),
                     chapter.getCrawlingStatus());
+            throw e;
         }
+    }
 
-        checkAndMarkComplete(message.comicSlug());
+    private ChapterCrawlMessage toMessage(Object payload) {
+        if (payload instanceof JsonObject jsonObject) {
+            return jsonObject.mapTo(ChapterCrawlMessage.class);
+        }
+        if (payload instanceof byte[] bytes) {
+            return Json.decodeValue(Buffer.buffer(bytes), ChapterCrawlMessage.class);
+        }
+        if (payload instanceof String raw) {
+            return Json.decodeValue(raw, ChapterCrawlMessage.class);
+        }
+        String payloadType = payload == null ? "null" : payload.getClass().getName();
+        throw new IllegalArgumentException("Unsupported RabbitMQ payload type: " + payloadType);
     }
 
     private void emitEvent(ChapterCrawlMessage message, CrawlProgressEvent.EventType type,

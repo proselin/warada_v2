@@ -1,0 +1,52 @@
+{
+  "name": "warada_v2-devservice-200426",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "overrideCommand": false,
+  "forwardPorts": [8080, 5005, 15672, 9001],
+  "runServices": [
+    "devcontainer",
+    "postgres",
+    "rabbitmq",
+    "minio"
+  ],
+  "remoteEnv": {
+    "DEV_DB_URL": "jdbc:postgresql://postgres:5432/postgres",
+    "DEV_DB_USERNAME": "postgres",
+    "DEV_DB_PASSWORD": "postgres",
+    "DEV_RABBITMQ_HOST": "rabbitmq",
+    "DEV_RABBITMQ_PORT": "5672",
+    "DEV_RABBITMQ_USERNAME": "guest",
+    "DEV_RABBITMQ_PASSWORD": "guest",
+    "DEV_MINIO_HOST": "minio",
+    "DEV_MINIO_PORT": "9000",
+    "DEV_MINIO_ACCESS_KEY": "admin",
+    "DEV_MINIO_SECRET_KEY": "admin123123123123",
+    "DEV_MINIO_SECURE": "false"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "redhat.vscode-quarkus",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ]
+    },
+    "jetbrains": {
+      "backend" : "IntelliJ",
+      "settings" : {
+        "Git4Idea:app:Git-Application-Settings.use_credential_helper": true,
+        "com.intellij:app:HttpConfigurable.use_proxy_pac": true
+      },
+    }
+  },
+  "postCreateCommand": "./gradlew --version"
+}

@@ -1,0 +1,87 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    working_dir: /workspace
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+      - gradle-cache:/home/vscode/.gradle
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DEV_DB_URL: jdbc:postgresql://postgres:5432/postgres
+      DEV_DB_USERNAME: postgres
+      DEV_DB_PASSWORD: postgres
+      DEV_RABBITMQ_HOST: rabbitmq
+      DEV_RABBITMQ_PORT: 5672
+      DEV_RABBITMQ_USERNAME: guest
+      DEV_RABBITMQ_PASSWORD: guest
+      DEV_MINIO_HOST: minio
+      DEV_MINIO_PORT: 9000
+      DEV_MINIO_ACCESS_KEY: admin
+      DEV_MINIO_SECRET_KEY: admin123123123123
+      DEV_MINIO_SECURE: "false"
+      DOCKER_HOST: unix:///var/run/docker.sock
+      DOCKER_API_VERSION: "1.44"
+      TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
+    ports:
+      - "${APP_PORT:-8080}:8080"
+      - "${DEBUG_PORT:-5005}:5005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${DEV_DB_EXPOSE_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "${DEV_RABBITMQ_EXPOSE_PORT:-5672}:5672"
+      - "${DEV_RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123123123123
+    ports:
+      - "${DEV_MINIO_EXPOSE_PORT:-9000}:9000"
+      - "${DEV_MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+
+volumes:
+  gradle-cache:
+  postgres-data:
+  rabbitmq-data:
+  minio-data:
