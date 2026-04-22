@@ -42,11 +42,12 @@ public class CrawlServiceImpl implements CrawlService {
     public void crawlNettruyenComic(String slugNId) throws Exception {
         log.infof("[CRAWL] START crawling comic slugNId=%s", slugNId);
 
-        try (Response response = coreServiceClient.comicExists(slugNId)) {
+        try {
+            Response response = coreServiceClient.comicExists(slugNId);
             if (response.getStatus() == 200) {
                 throw new ConflictException("Comic already exists: " + slugNId);
             }
-        }
+        } catch (Exception e) {}
 
         var extracted = nettruyenExtractor.extractComicDetail(slugNId);
         var extractedComic = extracted.comic();

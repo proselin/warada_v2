@@ -1,9 +1,13 @@
 package com.github.warada_v2.core.consumers;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.jboss.logging.Logger;
+
 import com.github.warada_v2.core.producers.ChapterPendingProducer;
-import com.github.warada_v2.core.repositories.ChapterRepository;
 import com.github.warada_v2.core.repositories.ComicRepository;
-import com.github.warada_v2.core.repositories.ImageRepository;
 import com.github.warada_v2.core.services.TagResolverService;
 import com.github.warada_v2.shared.entities.Chapter;
 import com.github.warada_v2.shared.entities.Comic;
@@ -13,16 +17,14 @@ import com.github.warada_v2.shared.enums.CrawlStatus;
 import com.github.warada_v2.shared.enums.ImageType;
 import com.github.warada_v2.shared.models.events.ChapterPendingEvent;
 import com.github.warada_v2.shared.models.events.ComicExtractedEvent;
+
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.smallrye.common.annotation.Blocking;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import org.eclipse.microprofile.reactive.messaging.Incoming;
-import org.jboss.logging.Logger;
-import java.util.List;
 
 @ApplicationScoped
 public class ComicExtractedConsumer {
@@ -30,22 +32,30 @@ public class ComicExtractedConsumer {
     private static final Logger log = Logger.getLogger(ComicExtractedConsumer.class);
 
     @Inject ComicRepository comicRepository;
-    @Inject ChapterRepository chapterRepository;
-    @Inject ImageRepository imageRepository;
     @Inject TagResolverService tagResolverService;
     @Inject ChapterPendingProducer chapterPendingProducer;
 
     @Incoming("comic-extracted-in")
     @Blocking
-    @Transactional
     public void consume(Object payload) {
         ComicExtractedEvent event = toEvent(payload);
         log.infof("[CORE] Received ComicExtractedEvent slug=%s", event.slug());
 
+        List<ChapterPendingEvent> chapterPendingEvents = QuarkusTransaction.requiringNew()
+                .call(() -> persistComicAndCollectChapterPendingEvents(event));
+
+        for (ChapterPendingEvent chapterPendingEvent : chapterPendingEvents) {
+            chapterPendingProducer.send(chapterPendingEvent);
+        }
+    }
+
+    private List<ChapterPendingEvent> persistComicAndCollectChapterPendingEvents(ComicExtractedEvent event) {
+        List<ChapterPendingEvent> chapterPendingEvents = new ArrayList<>();
+
         // Idempotency: skip if already persisted
         if (comicRepository.existsByOriginPathParams(event.originPathParams())) {
             log.warnf("[CORE] Comic already persisted, skipping: slug=%s", event.slug());
-            return;
+            return chapterPendingEvents;
         }
 
         List<Tag> tags = tagResolverService.resolveOrCreateTags(event.tags());
@@ -103,7 +113,7 @@ public class ComicExtractedConsumer {
         // Publish ChapterPendingEvent for each new chapter
         if (comic.getChapters() != null) {
             for (Chapter ch : comic.getChapters()) {
-                chapterPendingProducer.send(new ChapterPendingEvent(
+                chapterPendingEvents.add(new ChapterPendingEvent(
                         ch.getId(),
                         event.slug(),
                         ch.getChapterNumber(),
@@ -112,6 +122,8 @@ public class ComicExtractedConsumer {
                 ));
             }
         }
+
+        return chapterPendingEvents;
     }
 
     private ComicExtractedEvent toEvent(Object payload) {
