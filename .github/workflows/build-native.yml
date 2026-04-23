@@ -1,0 +1,86 @@
+name: Build Native Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Image version tag (defaults to short SHA)'
+        required: false
+        default: ''
+
+env:
+  REGISTRY: ghcr.io
+  ORG: proselin/warada_v2
+
+jobs:
+  build-native:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [core-service, crawl-service, display-service]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Cache Gradle caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "VERSION=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "VERSION=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN_CICD }}
+
+      - name: Build native binary — ${{ matrix.service }}
+        run: ./gradlew :${{ matrix.service }}:build -Dquarkus.profile=prod -x test
+
+      - name: Extract Docker metadata — ${{ matrix.service }}
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=${{ steps.version.outputs.VERSION }}-native-micro
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push Docker image — ${{ matrix.service }}
+        uses: docker/build-push-action@v5
+        with:
+          context: src/apps/${{ matrix.service }}/
+          file: src/apps/${{ matrix.service }}/src/main/docker/Dockerfile.native-micro
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

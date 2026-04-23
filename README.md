@@ -2,127 +2,135 @@
 
 Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapter images from NetTruyen, storing metadata in PostgreSQL, and serving images from MinIO.
 
+## Architecture
+
+The project is decomposed into three independent Quarkus microservices that communicate via RabbitMQ, plus a shared Java library:
+
+```
+warada_v2/
+├── src/
+│   ├── apps/
+│   │   ├── core-service/     # PostgreSQL persistence (port 8082)
+│   │   ├── crawl-service/    # NetTruyen scraping + MinIO (port 8081)
+│   │   └── display-service/  # GraphQL read API (port 8080)
+│   └── libs/
+│       └── shared-lib/       # JPA entities, events, enums, exceptions
+├── legacy/
+│   └── src/                  # Original monolith (reference only)
+└── docker-compose.yml
+```
+
+### Event Flow
+
+```
+crawl-service  →[ComicExtractedEvent]→        core-service
+core-service   →[ChapterPendingEvent]→        crawl-service
+crawl-service  →[ChapterImagesExtractedEvent]→ core-service
+display-service reads PostgreSQL directly (read-only)
+```
+
 ## Main Features
 
 - Crawl comic metadata, tags, thumbnail, and chapters from NetTruyen
-- Queue chapter image crawling through RabbitMQ
-- Stream live crawl progress to frontend clients with Server-Sent Events
+- Event-driven chapter image crawling through RabbitMQ
+- Stream live crawl progress to clients with Server-Sent Events (SSE)
 - Browse comics and chapters through GraphQL
-- Manage comics and chapters through REST endpoints
+- Trigger crawl operations through REST endpoints
 
 ## Tech Stack
 
-- Java 21
-- Quarkus 3
-- PostgreSQL 16
-- Hibernate ORM Panache
-- Liquibase
-- MinIO
-- RabbitMQ
-- GraphQL + REST + SSE
+- Java 21 · Quarkus 3
+- PostgreSQL 16 · Hibernate ORM Panache · Liquibase
+- MinIO (S3-compatible image storage)
+- RabbitMQ · SmallRye Reactive Messaging
+- GraphQL (SmallRye) · REST (JAX-RS) · SSE
 
 ## Local Development
 
-### Quarkus Dev Services workflow
+### Infrastructure
 
-Run the application directly:
-
-```bash
-./gradlew quarkusDev
-```
-
-Quarkus Dev Services now provides the local development infrastructure automatically when Docker or Podman is available.
-This project no longer relies on a Compose-based local stack for normal development.
-
-Useful local endpoints:
-- App: <http://localhost:8080>
-- GraphQL UI: <http://localhost:8080/q/graphql-ui>
-- Dev UI: <http://localhost:8080/q/dev/>
-- OpenAPI: <http://localhost:8080/q/openapi>
-
-> The image bucket is initialized automatically during startup when MinIO is ready.
->
-> If Dev Services cannot start, verify that Docker or Podman is running and that the local Docker socket is reachable by Testcontainers.
-
-### Dev Services troubleshooting
-
-If startup fails with a Docker API compatibility error, use the project defaults and run:
+Start PostgreSQL, RabbitMQ, and MinIO:
 
 ```bash
-./gradlew quarkusDev
+docker compose up -d postgres rabbitmq minio
+# or via devcontainer:
+docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 ```
 
-The repository already includes the required compatibility settings for recent Docker versions.
+### Run individual services (dev mode with live reload)
+
+```bash
+./gradlew :core-service:quarkusDev     # http://localhost:8082
+./gradlew :crawl-service:quarkusDev   # http://localhost:8081
+./gradlew :display-service:quarkusDev # http://localhost:8080
+```
+
+### Useful endpoints (display-service / crawl-service)
+
+| URL | Description |
+|-----|-------------|
+| `http://localhost:8080/graphql` | GraphQL API |
+| `http://localhost:8080/q/graphql-ui` | GraphQL UI (dev only) |
+| `http://localhost:8081/api/v1/crawl/nettruyen/comic` | Trigger comic crawl (POST) |
+| `http://localhost:8081/q/health` | Crawl-service health |
+| `http://localhost:15672` | RabbitMQ management UI |
+| `http://localhost:9001` | MinIO console |
+
+### Preferred workflow: devcontainer
+
+1. Install Docker Desktop or Docker Engine.
+2. Open in VS Code → **Dev Containers: Reopen in Container**, or open in IntelliJ with Dev Container support.
+3. Inside the container, run any service with `./gradlew :<service>:quarkusDev`.
+
+## Build
+
+```bash
+# Build all modules
+./gradlew build -x test
+
+# Build a specific service
+./gradlew :crawl-service:build -x test
+
+# Build native image (requires Docker)
+./gradlew :crawl-service:build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+```
+
+## Test
+
+```bash
+./gradlew test
+```
 
 ## Async Crawl Flow
 
-### Crawl a comic
+### 1. Trigger a comic crawl
 
 ```http
 POST /api/v1/crawl/nettruyen/comic
 Content-Type: application/json
 
-{
-  "slugNId": "one-piece-12345"
-}
+{ "slugNId": "one-piece-12345" }
 ```
 
-This will:
-1. Crawl comic metadata and thumbnail
-2. Create chapter records with `INIT` status
-3. Publish chapter crawl jobs to RabbitMQ
+This publishes a `ComicExtractedEvent` to RabbitMQ. `core-service` persists the comic and publishes `ChapterPendingEvent` for each chapter. `crawl-service` downloads images and publishes `ChapterImagesExtractedEvent`. `core-service` finalises each chapter as `FINISHED`.
 
-### Subscribe to live progress
+### 2. Subscribe to live crawl progress (SSE)
 
 ```http
-GET /api/v1/crawl/progress/{comicSlug}
+GET /sse/comic/{comicSlug}
 Accept: text/event-stream
 ```
 
-Example SSE payload:
+Supported event types: `processing` · `completed` · `failed` · `skipped`
 
-```json
-{
-  "type": "completed",
-  "message": "Chapter crawled successfully",
-  "data": {
-    "chapterId": 10,
-    "chapterNumber": "10",
-    "status": "FINISHED",
-    "comicSlug": "one-piece-12345"
-  }
-}
-```
-
-Supported event types:
-- `processing`
-- `completed`
-- `failed`
-- `skipped`
-
-### Retry pending chapters
+### 3. Retry pending chapters
 
 ```http
 POST /api/v1/crawl/nettruyen/comic/{slug}/retry
 ```
 
-If the comic already has an active crawl job in the queue, the retry request is blocked with `409 Conflict`.
-
-## Build and Test
-
-```bash
-./gradlew build
-./gradlew test
-```
-
-Build a native image:
-
-```bash
-./gradlew buildProdNative
-```
-
 ## Notes
 
-- SSE progress is currently in-memory per application instance
-- Frontend clients can subscribe at any time and receive live events from that point onward
-- Chapter crawling concurrency is configurable through the RabbitMQ consumer settings in the application config
+- SSE progress is in-memory per crawl-service instance
+- Liquibase migrations run only in `core-service`; `display-service` connects read-only
+- Chapter crawl concurrency is configurable via RabbitMQ consumer settings in `crawl-service/src/main/resources/application.properties`

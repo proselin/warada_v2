@@ -6,6 +6,26 @@
       "sourceType": "github",
       "computedHash": "13b0b2aa645c340d54fb7e91d7ff5d1417a4d10c9d4c381b4b0fd629a6398155"
     },
+    "caveman": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "a818cdc41dcfaa50dd891c5cb5e5705968338de02e7e37949ca56e8c30ad4176"
+    },
+    "caveman-compress": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "300fb8578258161e1752a2a4142a7e9ff178c960bcb83b84422e2987421f33bf"
+    },
+    "caveman-help": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "3cd5f7d3f88c8ef7b16a6555dc61f5a11b14151386697609ab6887ab8b5f059d"
+    },
+    "compress": {
+      "source": "JuliusBrussee/caveman",
+      "sourceType": "github",
+      "computedHash": "05c97bc3120108acd0b80bdef7fb4fa7c224ba83c8d384ccbc97f92e8a065918"
+    },
     "database-schema-design": {
       "source": "supercent-io/skills-template",
       "sourceType": "github",
