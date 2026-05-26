@@ -39,7 +39,7 @@ display-service reads PostgreSQL directly (read-only)
 
 ## Tech Stack
 
-- Java 21 · Quarkus 3
+- Java 21 · Quarkus 3.28.1
 - PostgreSQL 16 · Hibernate ORM Panache · Liquibase
 - MinIO (S3-compatible image storage)
 - RabbitMQ · SmallRye Reactive Messaging
@@ -72,6 +72,8 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 | `http://localhost:8080/graphql` | GraphQL API |
 | `http://localhost:8080/q/graphql-ui` | GraphQL UI (dev only) |
 | `http://localhost:8081/api/v1/crawl/nettruyen/comic` | Trigger comic crawl (POST) |
+| `http://localhost:8081/api/v1/crawl/nettruyen/comic/{slug}/retry` | Retry pending chapters (POST) |
+| `http://localhost:8081/api/v1/crawl/progress/{comicSlug}` | SSE crawl progress stream (GET) |
 | `http://localhost:8081/q/health` | Crawl-service health |
 | `http://localhost:15672` | RabbitMQ management UI |
 | `http://localhost:9001` | MinIO console |
@@ -117,7 +119,7 @@ This publishes a `ComicExtractedEvent` to RabbitMQ. `core-service` persists the 
 ### 2. Subscribe to live crawl progress (SSE)
 
 ```http
-GET /sse/comic/{comicSlug}
+GET /api/v1/crawl/progress/{comicSlug}
 Accept: text/event-stream
 ```
 
@@ -134,3 +136,4 @@ POST /api/v1/crawl/nettruyen/comic/{slug}/retry
 - SSE progress is in-memory per crawl-service instance
 - Liquibase migrations run only in `core-service`; `display-service` connects read-only
 - Chapter crawl concurrency is configurable via RabbitMQ consumer settings in `crawl-service/src/main/resources/application.properties`
+- Full API reference (REST + GraphQL) is documented in [`docs/API_REFERENCE.md`](docs/API_REFERENCE.md)
