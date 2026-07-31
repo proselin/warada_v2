@@ -177,7 +177,7 @@ private void checkDuplicate(String slug) {
 
 ## SSE Streaming in crawl-service
 
-`CrawlProgressBroadcaster` remains as an `@ApplicationScoped` in-memory broadcaster. The SSE endpoint in crawl-service connects to it directly — no RabbitMQ needed for SSE since it's process-local.
+`CrawlProgressBroadcasterImpl` remains as an `@ApplicationScoped` in-memory broadcaster. The SSE endpoint in crawl-service connects to it directly — no RabbitMQ needed for SSE since it's process-local.
 
 ```java
 @GET

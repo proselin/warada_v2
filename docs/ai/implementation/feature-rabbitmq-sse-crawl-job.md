@@ -41,7 +41,7 @@ The new design separates responsibilities:
   - emits progress events back to the broadcaster
 
 ### SSE broadcaster
-- `CrawlProgressBroadcaster`
+- `CrawlProgressBroadcasterImpl`
   - keeps per-comic subscribers in memory
   - emits `processing`, `completed`, `failed`, and `skipped` events
   - tracks active comics to prevent duplicate retry requests

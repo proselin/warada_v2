@@ -14,15 +14,6 @@ repositories {
     mavenLocal()
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        force "com.github.docker-java:docker-java-api:${dockerJavaVersion}"
-        force "com.github.docker-java:docker-java-core:${dockerJavaVersion}"
-        force "com.github.docker-java:docker-java-transport:${dockerJavaVersion}"
-        force "com.github.docker-java:docker-java-transport-zerodep:${dockerJavaVersion}"
-    }
-}
-
 dependencies {
     implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     /**
@@ -46,7 +37,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-client'
     implementation 'io.quarkus:quarkus-rest-client-jackson'
     implementation 'io.quarkus:quarkus-scheduler'
-    implementation 'io.quarkus:quarkus-messaging-rabbitmq'
 
     implementation 'io.quarkiverse.minio:quarkus-minio:3.8.6'
     implementation 'jakarta.persistence:jakarta.persistence-api:3.1.0'
@@ -64,30 +54,14 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
 }
 
-def dockerApiVersion = (findProperty('systemProp.api.version') ?: '1.44').toString()
-def dockerEnv = [
-        'DOCKER_HOST': System.getenv('DOCKER_HOST') ?: 'unix:///var/run/docker.sock',
-        'DOCKER_API_VERSION': System.getenv('DOCKER_API_VERSION') ?: dockerApiVersion,
-        'TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE': System.getenv('TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE') ?: '/var/run/docker.sock'
-]
-
-quarkusDev {
-    environmentVariables = dockerEnv
-}
-
 test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
-    systemProperty "api.version", dockerApiVersion
-    dockerEnv.each { key, value ->
-        environment key, value
-    }
     finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
     dependsOn test
     reports {
-        xml.required = true
         html.required = true
     }
 }
@@ -99,10 +73,4 @@ compileJava {
 
 compileTestJava {
     options.encoding = 'UTF-8'
-}
-
-tasks.register("buildProdNative") {
-    group = "build"
-    description = "Builds native binaries for all services. Run with: ./gradlew buildProdNative -Dquarkus.profile=prod"
-    dependsOn ':core-service:build', ':crawl-service:build', ':display-service:build'
 }

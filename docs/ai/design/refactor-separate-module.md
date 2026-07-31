@@ -333,7 +333,7 @@ User                crawl-service            RabbitMQ           core-service
  │                       │                       │  Chapter→FINISHED  │
 ```
 
-**SSE Flow**: The `crawl-service` maintains an in-memory `CrawlProgressBroadcaster`. When the user connects via SSE (`GET /sse/comic?slug-n-id=...`), the broadcaster pushes chapter-level events as `ChapterPendingConsumer` processes each chapter.
+**SSE Flow**: The `crawl-service` maintains an in-memory `CrawlProgressBroadcasterImpl`. When the user connects via SSE (`GET /sse/comic?slug-n-id=...`), the broadcaster pushes chapter-level events as `ChapterPendingConsumer` processes each chapter.
 
 ---
 
