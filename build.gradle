@@ -103,6 +103,6 @@ compileTestJava {
 
 tasks.register("buildProdNative") {
     group = "build"
-    description = "Builds native binaries for all services. Run with: ./gradlew buildProdNative -Dquarkus.profile=prod"
-    dependsOn ':core-service:build', ':crawl-service:build', ':display-service:build'
+    description = "Builds native binary for api-service. Run with: ./gradlew buildProdNative -Dquarkus.profile=prod"
+    dependsOn ':api-service:build'
 }
