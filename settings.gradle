@@ -9,9 +9,3 @@ pluginManagement {
     }
 }
 rootProject.name = 'warada_v2'
-
-include 'shared-lib'
-project(':shared-lib').projectDir = file('src/libs/shared-lib')
-
-include 'api-service'
-project(':api-service').projectDir = file('src/apps/api-service')
