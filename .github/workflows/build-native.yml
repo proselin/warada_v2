@@ -13,15 +13,11 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  ORG: proselin/warada_v2
+  ORG: proselin
 
 jobs:
   build-native:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        service: [core-service, crawl-service, display-service]
 
     permissions:
       contents: read
@@ -64,23 +60,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN_CICD }}
 
-      - name: Build native binary — ${{ matrix.service }}
-        run: ./gradlew :${{ matrix.service }}:build -Dquarkus.profile=prod -x test
+      - name: Build native binary
+        run: ./gradlew build -Dquarkus.profile=prod -x test
 
-      - name: Extract Docker metadata — ${{ matrix.service }}
+      - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.ORG }}/${{ matrix.service }}
+          images: ${{ env.REGISTRY }}/${{ env.ORG }}/warada_v2
           tags: |
             type=raw,value=${{ steps.version.outputs.VERSION }}-native-micro
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push Docker image — ${{ matrix.service }}
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: src/apps/${{ matrix.service }}/
-          file: src/apps/${{ matrix.service }}/src/main/docker/Dockerfile.native-micro
+          context: .
+          file: src/main/docker/Dockerfile.native-micro
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
