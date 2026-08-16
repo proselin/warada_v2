@@ -1,0 +1,49 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    jdbc:
+      url: ${DB_URL}
+
+  smallrye-graphql:
+    ui:
+      enabled: false
+      always-include: false
+    log-payload: off
+
+  otel:
+    enabled: true
+    exporter:
+      otlp:
+        endpoint: ${OTLP_ENDPOINT}
+
+  minio:
+    host: ${MINIO_ENDPOINT}
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+    secure: ${MINIO_SECURE}
+
+  devservices:
+    enabled: false
+
+  native:
+    enabled: true
+    container-build: true
+    builder-image: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+
+  package:
+    jar:
+      enabled: false
+
+warada:
+  nettruyen:
+    url: https://nettruyenar.com
+
+  image-bucket: warada-images
+  image-bucket-temp-path: temp
+  image-bucket-images-path: images
+
+  clean-up:
+    enabled: true
+    min-age-minutes: 5

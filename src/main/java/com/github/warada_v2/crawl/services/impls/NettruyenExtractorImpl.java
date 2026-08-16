@@ -242,7 +242,7 @@ public class NettruyenExtractorImpl implements NettruyenExtractor {
               .contentType(contentType)
               .object(object)
               .bucket(waradaConfig.imageBucket())
-              .stream(imageStream, -1, 10485760)
+              .stream(imageStream, -1L, 10485760L)
               .build());
       log.info("[Done] Minio Saved image with file Name " + filename);
       var result = new HashMap<String, String>();

@@ -1,0 +1,51 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: ${DEV_DB_USERNAME:postgres}
+    password: ${DEV_DB_PASSWD:postgres}
+    jdbc:
+      url: ${DEV_DB_URL:jdbc:postgresql://localhost:5432/postgres}
+
+  hibernate-orm:
+    log:
+      sql: false
+
+  otel:
+    enabled: false
+
+  minio:
+    host: ${DEV_MINIO_HOST:localhost}
+    port: ${DEV_MINIO_PORT:9000}
+    access-key: ${DEV_MINIO_ACCESS_KEY:admin}
+    secret-key: ${DEV_MINIO_SECRET_KEY:admin123123123123}
+    secure: ${DEV_MINIO_SECURE:false}
+
+  package:
+    jar:
+      enabled: true
+
+# set False if docker or podman not available
+  devservices:
+    enabled: true
+
+  docker:
+    executable-name: podman
+
+  native:
+    container-runtime: podman
+
+  observability:
+    lgtm:
+      enabled: true
+
+warada:
+  nettruyen:
+    url: https://nettruyenar.com
+
+  image-bucket: warada-images
+  image-bucket-temp-path: temp
+  image-bucket-images-path: images
+
+  clean-up:
+    enabled: true
+    min-age-minutes: 5

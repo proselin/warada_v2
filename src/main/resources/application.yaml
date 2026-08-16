@@ -1,0 +1,31 @@
+quarkus:
+  application:
+    name: warada_v2
+
+  http:
+    port: 8080
+    host: 0.0.0.0
+
+  log:
+    console:
+      darken: 1
+
+  hibernate-orm:
+    packages:
+      - com.github.warada_v2.shared.entities
+      - com.github.warada_v2.shared.converter
+
+  liquibase:
+    migrate-at-start: true
+    change-log: db/migration/db-changelog-master.yaml
+
+  smallrye-graphql:
+    ui:
+      enabled: true
+      always-include: true
+    schema-available: true
+    log-payload: queryAndVariables
+
+  rest-client:
+    nettruyen:
+      url: https://nettruyenar.com
