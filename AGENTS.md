@@ -52,7 +52,7 @@ warada_v2/
 | Object storage | MinIO (S3-compatible, bucket: `warada-images`) |
 | Messaging | RabbitMQ + SmallRye Reactive Messaging |
 | APIs | SmallRye GraphQL · JAX-RS REST · SSE |
-| Code generation | Lombok (`@JBossLog`, `@Data`, etc.) |
+| Code generation | Lombok (used selectively; JPA entities use manual getters/setters + Builder) |
 | Observability | OpenTelemetry |
 
 ---
@@ -94,7 +94,8 @@ docker compose up -d postgres rabbitmq minio
 | `http://localhost:8080/graphql` | display-service | GraphQL API |
 | `http://localhost:8080/q/graphql-ui` | display-service | GraphQL UI (dev only) |
 | `http://localhost:8081/api/v1/crawl/nettruyen/comic` | crawl-service | Trigger comic crawl (POST) |
-| `http://localhost:8081/sse/comic/{slug}` | crawl-service | SSE progress stream |
+| `http://localhost:8081/api/v1/crawl/nettruyen/comic/{slug}/retry` | crawl-service | Retry pending chapters (POST) |
+| `http://localhost:8081/api/v1/crawl/progress/{slug}` | crawl-service | SSE crawl progress (GET) |
 | `http://localhost:8081/q/health` | crawl-service | Health check |
 | `http://localhost:8082/q/health` | core-service | Health check |
 | `http://localhost:15672` | RabbitMQ | Management UI (guest/guest) |
@@ -119,7 +120,7 @@ Client
   │
   ├─ GET  /graphql  ──────────────────────► display-service ──► PostgreSQL (read-only)
   │
-  └─ GET  /sse/comic/{slug}  ─────────────► crawl-service (in-memory broadcast)
+  └─ GET  /api/v1/crawl/progress/{slug}  ──► crawl-service (in-memory broadcast)
 ```
 
 ---
@@ -136,11 +137,13 @@ Client
 
 ### Logging
 
-Use `@JBossLog` (Lombok) on every class that logs. **Never use `System.out.println()` or `e.printStackTrace()`.**
+Use `private static final Logger log = Logger.getLogger(ClassName.class)` (JBoss Logger) in every class that logs. **Never use `System.out.println()` or `e.printStackTrace()`.**
 
 ```java
-@JBossLog
+import org.jboss.logging.Logger;
+
 public class MyService {
+    private static final Logger log = Logger.getLogger(MyService.class);
     // log.infof(), log.debugf(), log.warnf(), log.errorf()
 }
 ```
@@ -151,15 +154,16 @@ Use Jakarta CDI annotations (`@Inject`, `@ApplicationScoped`, `@RequestScoped`).
 
 ### GraphQL Resources
 
-- Annotate with `@GraphQLApi`, `@Query`, `@Mutation`
+- Annotate with `@GraphQLApi` and `@Query`
 - Add `@Blocking` on methods that perform JPA operations (they must not run on the Vert.x event loop)
+- Current GraphQL API is **read-only** (queries only — no mutations implemented)
 
 ```java
 @GraphQLApi
 public class ComicGqlResource {
-    @Query
+    @Query("comics")
     @Blocking
-    public PageResponse<ComicGql> comics(PageRequest request) { ... }
+    public List<Comic> comics(PageRequest pageRequest) { ... }
 }
 ```
 
@@ -181,8 +185,8 @@ Use custom exceptions from `shared-lib/exceptions/`:
 
 ### Configuration
 
-- Add new config keys to each service's `application.properties` or `application.yaml` under the appropriate Quarkus profile (`%dev`, `%prod`, `%test-native`).
-- Access config via `@ConfigMapping` interfaces in `configurations/`, not `@ConfigProperty` directly.
+- All services use `application.properties` (not `application.yaml`). Add new config keys under the appropriate Quarkus profile prefix (`%dev`, `%prod`).
+- Access config via `@ConfigMapping` interfaces in `configurations/` (see `crawl-service/configurations/WaradaConfig.java`), not `@ConfigProperty` directly.
 
 ### Database Migrations
 

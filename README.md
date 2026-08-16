@@ -72,7 +72,10 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 | `http://localhost:8080/graphql` | GraphQL API |
 | `http://localhost:8080/q/graphql-ui` | GraphQL UI (dev only) |
 | `http://localhost:8081/api/v1/crawl/nettruyen/comic` | Trigger comic crawl (POST) |
+| `http://localhost:8081/api/v1/crawl/nettruyen/comic/{slug}/retry` | Retry pending chapters (POST) |
+| `http://localhost:8081/api/v1/crawl/progress/{slug}` | SSE crawl progress (GET) |
 | `http://localhost:8081/q/health` | Crawl-service health |
+| `http://localhost:8082/q/health` | Core-service health |
 | `http://localhost:15672` | RabbitMQ management UI |
 | `http://localhost:9001` | MinIO console |
 
@@ -117,7 +120,7 @@ This publishes a `ComicExtractedEvent` to RabbitMQ. `core-service` persists the 
 ### 2. Subscribe to live crawl progress (SSE)
 
 ```http
-GET /sse/comic/{comicSlug}
+GET /api/v1/crawl/progress/{comicSlug}
 Accept: text/event-stream
 ```
 
