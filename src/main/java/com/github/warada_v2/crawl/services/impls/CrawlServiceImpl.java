@@ -19,9 +19,9 @@ import com.github.warada_v2.shared.repositories.ChapterRepository;
 import com.github.warada_v2.shared.repositories.ComicRepository;
 import com.github.warada_v2.shared.repositories.ImageRepository;
 import io.minio.CopyObjectArgs;
-import io.minio.CopySource;
 import io.minio.MinioClient;
 import io.minio.RemoveObjectArgs;
+import io.minio.SourceObject;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -290,7 +290,7 @@ public class CrawlServiceImpl implements CrawlService {
         CopyObjectArgs.builder()
             .bucket(bucket)
             .object(destPath)
-            .source(CopySource.builder().bucket(bucket).object(sourcePath).build())
+            .source(SourceObject.builder().bucket(bucket).object(sourcePath).build())
             .build());
     minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(sourcePath).build());
   }
