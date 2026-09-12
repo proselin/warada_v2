@@ -60,9 +60,7 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 ### Run individual services (dev mode with live reload)
 
 ```bash
-./gradlew :core-service:quarkusDev     # http://localhost:8082
-./gradlew :crawl-service:quarkusDev   # http://localhost:8081
-./gradlew :display-service:quarkusDev # http://localhost:8080
+./mvnw quarkus:dev                    # http://localhost:8080
 ```
 
 ### Useful endpoints (display-service / crawl-service)
@@ -80,25 +78,25 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 
 1. Install Docker Desktop or Docker Engine.
 2. Open in VS Code → **Dev Containers: Reopen in Container**, or open in IntelliJ with Dev Container support.
-3. Inside the container, run any service with `./gradlew :<service>:quarkusDev`.
+3. Inside the container, run the application with `./mvnw quarkus:dev`.
 
 ## Build
 
 ```bash
 # Build all modules
-./gradlew build -x test
+./mvnw -DskipTests package
 
 # Build a specific service
-./gradlew :crawl-service:build -x test
+./mvnw -DskipTests package
 
 # Build native image (requires Docker)
-./gradlew :crawl-service:build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true
+./mvnw -Pnative -Dquarkus.native.container-build=true package
 ```
 
 ## Test
 
 ```bash
-./gradlew test
+./mvnw test
 ```
 
 ## Async Crawl Flow

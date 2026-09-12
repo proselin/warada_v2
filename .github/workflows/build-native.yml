@@ -32,17 +32,7 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
-
-      - name: Cache Gradle caches
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
+          cache: maven
 
       - name: Resolve version
         id: version
@@ -61,7 +51,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN_CICD }}
 
       - name: Build native binary
-        run: ./gradlew build -Dquarkus.profile=prod -x test
+        run: ./mvnw -Pnative -Dquarkus.profile=prod -DskipTests package
 
       - name: Extract Docker metadata
         id: meta

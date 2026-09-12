@@ -9,7 +9,7 @@
 - Replaced Lombok-based logging annotations with explicit JBoss Logger usage in Quarkus resource, service, messaging, and scheduler classes.
 - Removed Lombok from low-risk enums, exception handling, helper models, and pageable DTO classes.
 - Converted the remaining ORM entities to explicit Java while preserving JPA behavior and existing builder-style call paths.
-- Removed the Lombok dependency from the Gradle build configuration.
+- Removed the Lombok dependency from the Maven build configuration.
 
 ---
 
@@ -62,7 +62,7 @@ First stable release of **warada_v2** — a Quarkus-based manga/comic crawler an
 
 #### Infrastructure
 - Docker Compose setup for local development (PostgreSQL + MinIO).
-- Quarkus native image build support via `./gradlew build -Dquarkus.native.enabled=true`.
+- Quarkus native image build support via `./mvnw -Pnative -Dquarkus.native.container-build=true package`.
 - Dedicated build scripts for native and native-micro images (`scripts/`).
 
 ---
@@ -76,7 +76,7 @@ First stable release of **warada_v2** — a Quarkus-based manga/comic crawler an
 | PostgreSQL | 16 |
 | MinIO client | quarkus-minio-native 3.8.6 |
 | Lombok | 1.18.42 |
-| Gradle | (wrapper) |
+| Maven | 3.9.11 (wrapper) |
 
 ---
 
@@ -93,5 +93,5 @@ First stable release of **warada_v2** — a Quarkus-based manga/comic crawler an
 
 1. Start infrastructure: `docker compose up -d`
 2. Create MinIO bucket `warada-images` via the MinIO console at `http://localhost:9001` (credentials: `admin` / `admin123123123123`).
-3. Run the application: `./gradlew quarkusDev`
+3. Run the application: `./mvnw quarkus:dev`
 4. Liquibase migrations run automatically on startup.

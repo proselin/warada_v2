@@ -7,7 +7,7 @@ services:
     command: sleep infinity
     volumes:
       - ..:/workspace:cached
-      - gradle-cache:/home/vscode/.gradle
+      - maven-cache:/home/vscode/.m2
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       DEV_DB_URL: jdbc:postgresql://postgres:5432/postgres
@@ -81,7 +81,7 @@ services:
       - minio-data:/data
 
 volumes:
-  gradle-cache:
+  maven-cache:
   postgres-data:
   rabbitmq-data:
   minio-data:

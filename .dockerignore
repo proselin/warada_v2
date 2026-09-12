@@ -1,14 +1,13 @@
 *
-!build/*-runner
-!build/*-runner.jar
-!build/lib/*
-!build/quarkus-app/*
+!target/
+!target/*-runner
+!target/*-runner.jar
+!target/lib/*
+!target/quarkus-app/*
 
 temp
 .github
 .idea
 .gitignore
-.gradle
 .env
 scripts
-
