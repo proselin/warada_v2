@@ -51,6 +51,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN_CICD }}
 
       - name: Build native binary
+        working-directory: backend
         run: ./mvnw -Pnative -Dquarkus.profile=prod -DskipTests package
 
       - name: Extract Docker metadata
@@ -65,8 +66,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: src/main/docker/Dockerfile.native-micro
+          context: backend
+          file: backend/src/main/docker/Dockerfile.native-micro
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

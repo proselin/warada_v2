@@ -1,6 +1,6 @@
 # T003 — Admin Crawl UI
 
-**Status:** pending
+**Status:** done
 **Created:** 2026-09-13
 **Plan:** [P001-260913-warada-sveltekit-frontend](../plans/P001-260913-warada-sveltekit-frontend.md)
 
@@ -23,3 +23,4 @@ Implement focused administrative crawl controls after the shared frontend founda
 ## 4. Work history
 
 - 2026-09-13: Task created and linked to P001.
+- 2026-09-13: Added crawl trigger form and accessible SSE progress display.

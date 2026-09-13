@@ -4,20 +4,14 @@ Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapt
 
 ## Architecture
 
-The project is decomposed into three independent Quarkus microservices that communicate via RabbitMQ, plus a shared Java library:
+The repository is organized as a backend/frontend monorepo:
 
 ```
 warada_v2/
-├── src/
-│   ├── apps/
-│   │   ├── core-service/     # PostgreSQL persistence (port 8082)
-│   │   ├── crawl-service/    # NetTruyen scraping + MinIO (port 8081)
-│   │   └── display-service/  # GraphQL read API (port 8080)
-│   └── libs/
-│       └── shared-lib/       # JPA entities, events, enums, exceptions
-├── legacy/
-│   └── src/                  # Original monolith (reference only)
-└── docker-compose.yml
+├── backend/                  # Quarkus API, crawler, persistence, and tests
+├── frontend/                 # SvelteKit reader and admin UI
+├── docs/                     # Requirements, plans, and design system
+└── docker-compose.yml        # Local infrastructure
 ```
 
 ### Event Flow
@@ -32,7 +26,7 @@ display-service reads PostgreSQL directly (read-only)
 ## Main Features
 
 - Crawl comic metadata, tags, thumbnail, and chapters from NetTruyen
-- Event-driven chapter image crawling through RabbitMQ
+- Chapter image crawling and progress streaming
 - Stream live crawl progress to clients with Server-Sent Events (SSE)
 - Browse comics and chapters through GraphQL
 - Trigger crawl operations through REST endpoints
@@ -60,7 +54,7 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 ### Run individual services (dev mode with live reload)
 
 ```bash
-./mvnw quarkus:dev                    # http://localhost:8080
+./backend/mvnw -f backend/pom.xml quarkus:dev # http://localhost:8080
 ```
 
 ### Useful endpoints (display-service / crawl-service)
@@ -78,31 +72,31 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 
 1. Install Docker Desktop or Docker Engine.
 2. Open in VS Code → **Dev Containers: Reopen in Container**, or open in IntelliJ with Dev Container support.
-3. Inside the container, run the application with `./mvnw quarkus:dev`.
+3. Inside the container, run the application with `./backend/mvnw -f backend/pom.xml quarkus:dev`.
 
 ## Build
 
 ```bash
-# Build all modules
-./mvnw -DskipTests package
+# Build backend
+./backend/mvnw -f backend/pom.xml -DskipTests package
 
 # Build a specific service
-./mvnw -DskipTests package
+./backend/mvnw -f backend/pom.xml -DskipTests package
 
 # Build native image (requires Docker)
-./mvnw -Pnative -Dquarkus.native.container-build=true package
+./backend/mvnw -f backend/pom.xml -Pnative -Dquarkus.native.container-build=true package
 ```
 
 ## Test
 
 ```bash
-./mvnw test
+./backend/mvnw -f backend/pom.xml test
 ```
 
 Run native integration tests (requires a container runtime):
 
 ```bash
-./mvnw -Pnative -Dquarkus.native.container-build=true verify
+./backend/mvnw -f backend/pom.xml -Pnative -Dquarkus.native.container-build=true verify
 ```
 
 ## Async Crawl Flow

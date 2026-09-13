@@ -1,6 +1,6 @@
 # T004 — Frontend Validation
 
-**Status:** pending
+**Status:** blocked
 **Created:** 2026-09-13
 **Plan:** [P001-260913-warada-sveltekit-frontend](../plans/P001-260913-warada-sveltekit-frontend.md)
 
@@ -24,3 +24,4 @@ Validate the complete frontend against the plan's quality and safety requirement
 ## 4. Work history
 
 - 2026-09-13: Task created and linked to P001.
+- 2026-09-13: Blocked because npm registry access is unavailable; dependency installation and Svelte checks could not run.

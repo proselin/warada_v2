@@ -1,6 +1,6 @@
 # T001 — Frontend Design Foundation
 
-**Status:** in-progress
+**Status:** done
 **Created:** 2026-09-13
 **Plan:** [P001-260913-warada-sveltekit-frontend](../plans/P001-260913-warada-sveltekit-frontend.md)
 
@@ -13,6 +13,7 @@ Establish the approved UI/UX direction and SvelteKit foundation before reader fe
 - `design-system/warada-reader/MASTER.md` — shared visual rules and tokens
 - `frontend/` — SvelteKit application foundation
 - `frontend/src/lib/` — shared layout and API boundaries
+- `backend/` — relocated Quarkus application and Maven wrapper
 
 ## 3. Definition of Done
 
@@ -25,3 +26,5 @@ Establish the approved UI/UX direction and SvelteKit foundation before reader fe
 
 - 2026-09-13: Generated and persisted initial UI/UX Pro Max design system.
 - 2026-09-13: Recorded approved frontend architecture and scope.
+- 2026-09-13: Created the SvelteKit + TypeScript workspace, shared shell, API clients, and accessibility primitives.
+- 2026-09-13: Relocated the Quarkus backend into `backend/` and updated build, CI, container, and documentation paths.

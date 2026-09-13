@@ -7,7 +7,7 @@
 ## Technology Stack
 
 - **Framework**: Quarkus 3.39.3, Java 25
-- **Build Tool**: Maven (use `./mvnw`)
+- **Build Tool**: Maven (use `./backend/mvnw -f backend/pom.xml`)
 - **Database**: PostgreSQL 16 + Hibernate ORM Panache + Liquibase migrations
 - **Object Storage**: MinIO (S3-compatible, bucket: `warada-images`)
 - **APIs**: SmallRye GraphQL (queries) + JAX-RS REST (crawl triggers) + SSE (streaming)
@@ -21,22 +21,22 @@
 docker compose up -d
 
 # Dev mode with live reload (port 8080)
-./mvnw quarkus:dev
+./backend/mvnw -f backend/pom.xml quarkus:dev
 
 # Run all tests
-./mvnw test
+./backend/mvnw -f backend/pom.xml test
 
 # Run a single test
-./mvnw -Dtest="com.github.warada_v2.ExampleResourceTest#testPingPong" test
+./backend/mvnw -f backend/pom.xml -Dtest="com.github.warada_v2.ExampleResourceTest#testPingPong" test
 
 # Build JVM JAR
-./mvnw package
+./backend/mvnw -f backend/pom.xml package
 
 # Build native image (requires Docker)
-./mvnw -Pnative -Dquarkus.native.container-build=true package
+./backend/mvnw -f backend/pom.xml -Pnative -Dquarkus.native.container-build=true package
 
 # Build native image for production
-./mvnw -Pnative -Dquarkus.native.container-build=true package
+./backend/mvnw -f backend/pom.xml -Pnative -Dquarkus.native.container-build=true package
 ```
 
 **Dev endpoints** (after `quarkusDev`):

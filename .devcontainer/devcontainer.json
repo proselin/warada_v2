@@ -53,5 +53,5 @@
       },
     }
   },
-  "postCreateCommand": "./mvnw --version"
+  "postCreateCommand": "./backend/mvnw --version"
 }

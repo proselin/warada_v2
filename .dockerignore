@@ -1,9 +1,9 @@
 *
-!target/
-!target/*-runner
-!target/*-runner.jar
-!target/lib/*
-!target/quarkus-app/*
+!backend/target/
+!backend/target/*-runner
+!backend/target/*-runner.jar
+!backend/target/lib/*
+!backend/target/quarkus-app/*
 
 temp
 .github

@@ -1,6 +1,6 @@
 # P001 — Warada SvelteKit Frontend
 
-**Status:** draft
+**Status:** active
 **Created:** 2026-09-13
 
 ## 1. Reason
@@ -43,7 +43,7 @@ Build in this order:
 
 ## 6. Impact
 
-- New frontend workspace, likely under `frontend/`.
+- Backend source and build files live under `backend/`; frontend workspace lives under `frontend/`.
 - New design-system documentation and tokens.
 - Integration with existing backend GraphQL, REST crawl, and SSE progress endpoints.
 - No initial changes to crawler source abstraction, backend business rules, or database schema.
@@ -63,3 +63,9 @@ Build in this order:
 - No second comic source until the NetTruyen integration is stable behind a backend abstraction.
 - No BFF unless the existing API boundaries prove insufficient.
 - Light/dark mode remains a design validation decision, not an implementation assumption.
+
+## Current progress
+
+- The backend now lives under `backend/`.
+- The SvelteKit frontend foundation and initial reader/admin routes live under `frontend/`.
+- Frontend dependency installation and full checks remain blocked until npm registry access is available.
