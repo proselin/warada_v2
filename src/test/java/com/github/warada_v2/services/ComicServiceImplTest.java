@@ -11,7 +11,7 @@ import com.github.warada_v2.shared.repositories.ComicRepository;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
-import jakarta.ws.rs.NotFoundException;
+import com.github.warada_v2.shared.exceptions.ResourceNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +81,7 @@ class ComicServiceImplTest {
   void testFindByIdNotFound() {
     when(comicRepository.findByIdOptional(99L)).thenReturn(Optional.empty());
 
-    assertThrows(NotFoundException.class, () -> comicService.findById(99L));
+    assertThrows(ResourceNotFoundException.class, () -> comicService.findById(99L));
     verify(comicRepository, times(1)).findByIdOptional(99L);
   }
 }

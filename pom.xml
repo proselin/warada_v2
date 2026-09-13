@@ -10,15 +10,16 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>25</maven.compiler.release>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.38.2</quarkus.platform.version>
-        <quarkus.plugin.version>3.38.2</quarkus.plugin.version>
+        <quarkus.platform.version>3.39.3</quarkus.platform.version>
+        <quarkus.plugin.version>3.39.3</quarkus.plugin.version>
         <quarkus.minio.version>3.9.1</quarkus.minio.version>
         <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
+        <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
         <jacoco.version>0.8.13</jacoco.version>
     </properties>
 
@@ -38,6 +39,10 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -154,6 +159,19 @@
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                     </systemPropertyVariables>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven.failsafe.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>

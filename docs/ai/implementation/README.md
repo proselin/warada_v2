@@ -10,7 +10,7 @@ description: Technical implementation notes, patterns, and code guidelines
 **How do we get started?**
 
 ### Prerequisites
-- **Java 21** (GraalVM recommended for native builds)
+- **Java 25** (Mandrel recommended for native builds)
 - **Gradle** (wrapper included — use `./gradlew`)
 - **Docker** or **Podman** (required by Quarkus Dev Services in development)
 - **IDE:** IntelliJ IDEA recommended (with Lombok plugin)

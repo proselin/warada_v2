@@ -20,6 +20,7 @@ quarkus:
 
   minio:
     host: ${MINIO_ENDPOINT}
+    port: ${MINIO_PORT:9000}
     access-key: ${MINIO_ACCESS_KEY}
     secret-key: ${MINIO_SECRET_KEY}
     secure: ${MINIO_SECURE}
@@ -30,7 +31,7 @@ quarkus:
   native:
     enabled: true
     container-build: true
-    builder-image: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21
+    builder-image: quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-25
 
   package:
     jar:

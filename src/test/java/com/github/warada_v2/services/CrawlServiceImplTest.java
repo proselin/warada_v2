@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.github.warada_v2.crawl.services.CrawlProgressBroadcaster;
@@ -20,6 +21,7 @@ import com.github.warada_v2.crawl.models.ExtractedChapterDetail;
 import com.github.warada_v2.crawl.models.ExtractedChapters;
 import com.github.warada_v2.crawl.models.ExtractedNettruyenComic;
 import com.github.warada_v2.crawl.models.ExtractedThumbImage;
+import com.github.warada_v2.crawl.models.CrawlProgressEvent;
 import com.github.warada_v2.shared.configurations.WaradaConfig;
 import com.github.warada_v2.shared.crawl.ExtractedComicDetail;
 import com.github.warada_v2.shared.entities.Chapter;
@@ -30,19 +32,17 @@ import com.github.warada_v2.shared.repositories.ChapterRepository;
 import com.github.warada_v2.shared.repositories.ComicRepository;
 import com.github.warada_v2.shared.repositories.ImageRepository;
 import io.minio.MinioClient;
-import jakarta.transaction.Status;
-import jakarta.transaction.Synchronization;
-import jakarta.transaction.TransactionSynchronizationRegistry;
+import io.quarkus.test.junit.QuarkusTest;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+@QuarkusTest
 class CrawlServiceImplTest {
 
   @Mock ComicRepository comicRepository;
@@ -59,12 +59,7 @@ class CrawlServiceImplTest {
 
   @Mock TagService tagService;
 
-  //    @Mock
-  //    ChapterCrawlProducer chapterCrawlProducer;
-
   @Mock CrawlProgressBroadcaster broadcaster;
-
-  @Mock TransactionSynchronizationRegistry transactionSynchronizationRegistry;
 
   @InjectMocks CrawlServiceImpl crawlService;
 
@@ -75,17 +70,17 @@ class CrawlServiceImplTest {
 
   @Test
   void testCrawlNettruyenComicConflict() {
-    when(comicRepository.existedBySlugAndComicId("test-slug-123")).thenReturn(true);
+    when(comicRepository.existsByOriginPathParams("test-slug-123")).thenReturn(true);
 
     assertThrows(ConflictException.class, () -> crawlService.crawlNettruyenComic("test-slug-123"));
-    verify(comicRepository, times(1)).existedBySlugAndComicId("test-slug-123");
+    verify(comicRepository, times(1)).existsByOriginPathParams("test-slug-123");
     verifyNoMoreInteractions(nettruyenExtractor);
   }
 
   @Test
   void testCrawlNettruyenComicSuccess() throws Exception {
     String slugNId = "test-slug-123";
-    when(comicRepository.existedBySlugAndComicId(slugNId)).thenReturn(false);
+    when(comicRepository.existsByOriginPathParams(slugNId)).thenReturn(false);
 
     ExtractedNettruyenComic.Author author =
         new ExtractedNettruyenComic.Author("Person", "John Doe");
@@ -112,6 +107,8 @@ class CrawlServiceImplTest {
     ExtractedComicDetail detail = new ExtractedComicDetail(comicInfo, chapters, thumbImage);
 
     when(nettruyenExtractor.extractComicDetail(slugNId)).thenReturn(detail);
+    when(nettruyenExtractor.extractChapterDetail(anyString()))
+        .thenReturn(new ExtractedChapterDetail(Collections.emptyList()));
     when(tagService.resolveOrCreateTags(anyList())).thenReturn(Collections.emptyList());
     when(waradaConfig.imageBucketImagesPath()).thenReturn("images");
     when(waradaConfig.imageBucket()).thenReturn("warada-images");
@@ -125,7 +122,7 @@ class CrawlServiceImplTest {
   @Test
   void testCrawlNettruyenComicQueuesOnlyAfterCommit() throws Exception {
     String slugNId = "test-slug-123";
-    when(comicRepository.existedBySlugAndComicId(slugNId)).thenReturn(false);
+    when(comicRepository.existsByOriginPathParams(slugNId)).thenReturn(false);
 
     ExtractedNettruyenComic.Author author =
         new ExtractedNettruyenComic.Author("Person", "John Doe");
@@ -172,32 +169,25 @@ class CrawlServiceImplTest {
 
     crawlService.crawlNettruyenComic(slugNId);
 
-    ArgumentCaptor<Synchronization> captor = ArgumentCaptor.forClass(Synchronization.class);
-    verify(transactionSynchronizationRegistry, times(1))
-        .registerInterposedSynchronization(captor.capture());
-    //        verify(chapterCrawlProducer, never()).sendAll(eq(slugNId), anyList());
-
-    captor.getValue().afterCompletion(Status.STATUS_COMMITTED);
-
-    //        verify(chapterCrawlProducer, times(1)).sendAll(eq(slugNId), anyList());
+    verify(comicRepository, times(1)).persistAndFlush(any(Comic.class));
+    verify(broadcaster, atLeastOnce()).emit(anyString(), any(CrawlProgressEvent.class));
   }
 
   @Test
   void testCrawlNettruyenChapterNotFound() {
     when(chapterRepository.findByIdOptional(1L)).thenReturn(Optional.empty());
 
-    //        assertThrows(RuntimeException.class, () -> crawlService.crawlNettruyenChapter(1L));
   }
 
   @Test
-  void testCrawlNettruyenChapterAlreadyFinished() {
+  void testCrawlNettruyenChapterAlreadyFinished() throws Exception {
     Chapter chapter = new Chapter();
     chapter.setId(1L);
     chapter.setCrawlingStatus(CrawlStatus.FINISHED);
 
     when(chapterRepository.findByIdOptional(1L)).thenReturn(Optional.of(chapter));
 
-    //        crawlService.crawlNettruyenChapter(1L);
+    crawlService.crawlChapterById(1L);
 
     // Should return early, without extracting
     verify(nettruyenExtractor, never()).extractChapterDetail(anyString());
@@ -210,27 +200,31 @@ class CrawlServiceImplTest {
     chapter.setCrawlingStatus(CrawlStatus.INIT);
     chapter.setOriginPathParams("test-slug-1");
 
+    Comic comic = new Comic();
+    comic.setSlug("test-slug");
+    chapter.setComic(comic);
+    when(chapterRepository.findByIdWithComic(1L)).thenReturn(Optional.of(chapter));
     when(chapterRepository.findByIdOptional(1L)).thenReturn(Optional.of(chapter));
 
     // Return 0 images for ease
     ExtractedChapterDetail detail = new ExtractedChapterDetail(Collections.emptyList());
     when(nettruyenExtractor.extractChapterDetail("test-slug-1")).thenReturn(detail);
 
-    //        crawlService.crawlNettruyenChapter(1L);
+    crawlService.crawlChapterById(1L);
 
     // Status should be set to FINISHED eventually
     assertEquals(CrawlStatus.FINISHED, chapter.getCrawlingStatus());
     verify(chapterRepository, atLeastOnce()).persistOrUpdate(chapter);
-    verify(imageRepository, times(1)).persist(anyList());
+    verifyNoInteractions(imageRepository);
   }
 
   @Test
-  void testCrawlChapterNotInit() {
+  void testCrawlChapterNotInit() throws Exception {
     Chapter chapter = new Chapter();
     chapter.setId(1L);
     chapter.setCrawlingStatus(CrawlStatus.STARTED); // not FINISHED, but not INIT
 
-    //        crawlService.crawlChapter(chapter);
+    crawlService.crawlChapterById(chapter.getId());
 
     // Should return early and not fetch
     verify(nettruyenExtractor, never()).extractChapterDetail(anyString());

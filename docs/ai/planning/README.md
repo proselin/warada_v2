@@ -120,6 +120,6 @@ PostgreSQL + MinIO (Dev Services)
 - Optional: OpenTelemetry Collector for observability
 
 ### Tools
-- Java 21 / GraalVM for native builds
+- Java 25 / Mandrel for native builds
 - Docker for containerization
 - Gradle (wrapper included)

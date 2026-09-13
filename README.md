@@ -39,7 +39,7 @@ display-service reads PostgreSQL directly (read-only)
 
 ## Tech Stack
 
-- Java 21 · Quarkus 3
+- Java 25 · Quarkus 3.39.3
 - PostgreSQL 16 · Hibernate ORM Panache · Liquibase
 - MinIO (S3-compatible image storage)
 - RabbitMQ · SmallRye Reactive Messaging
@@ -97,6 +97,12 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 
 ```bash
 ./mvnw test
+```
+
+Run native integration tests (requires a container runtime):
+
+```bash
+./mvnw -Pnative -Dquarkus.native.container-build=true verify
 ```
 
 ## Async Crawl Flow

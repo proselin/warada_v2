@@ -62,8 +62,8 @@ description: Clarify the problem space, gather requirements, and define success 
 **What limitations do we need to work within?**
 
 ### Technical Constraints
-- Java 21 required (GraalVM native image target)
-- Quarkus 3.28.x framework
+- Java 25 required (Mandrel native image target)
+- Quarkus 3.39.x framework
 - PostgreSQL as the sole database
 - MinIO for object/image storage
 - Images must be downloaded with specific HTTP headers (Referer, Origin) to bypass hotlink protection

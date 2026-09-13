@@ -10,6 +10,6 @@ class HealthCheckResourceTest {
   @Test
   void testPing() {
     HealthCheckResource resource = new HealthCheckResource();
-    assertEquals("{\"status\":\"UP\"}", resource.health());
+    assertEquals("{\"status\":\"UP\"}", resource.health().getEntity());
   }
 }

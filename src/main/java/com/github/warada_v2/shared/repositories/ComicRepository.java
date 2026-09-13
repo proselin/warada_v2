@@ -28,6 +28,6 @@ public class ComicRepository implements PanacheRepository<Comic> {
   }
 
   public boolean existedBySlugAndComicId(String slugNComicId) {
-    return find("slugNComicId = ?1", slugNComicId) != null;
+    return count("slugNComicId = ?1", slugNComicId) > 0;
   }
 }

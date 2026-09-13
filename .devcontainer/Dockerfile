@@ -9,8 +9,8 @@ WORKDIR /home/vscode
 # Toàn bộ SDKMAN trong 1 RUN để giữ context
 RUN curl -s "https://get.sdkman.io" | bash && \
     source "$HOME/.sdkman/bin/sdkman-init.sh" && \
-    sdk install java 21.0.2-graalce && \
-    sdk default java 21.0.2-graalce
+    sdk install java 25.0.1-tem && \
+    sdk default java 25.0.1-tem
 
 RUN apt install git -y
 

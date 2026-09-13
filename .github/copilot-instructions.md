@@ -6,7 +6,7 @@
 
 ## Technology Stack
 
-- **Framework**: Quarkus 3.38.2, Java 21
+- **Framework**: Quarkus 3.39.3, Java 25
 - **Build Tool**: Maven (use `./mvnw`)
 - **Database**: PostgreSQL 16 + Hibernate ORM Panache + Liquibase migrations
 - **Object Storage**: MinIO (S3-compatible, bucket: `warada-images`)

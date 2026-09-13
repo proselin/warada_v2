@@ -43,12 +43,12 @@ class FileTempClearerTest {
   }
 
   @Test
-  void cleanTempObjectsSkipsWhenDisabled() {
+  void cleanTempObjectsSkipsWhenDisabled() throws Exception {
     when(cleanUp.enabled()).thenReturn(false);
     when(cleanUp.minAgeMinutes()).thenReturn(60);
 
-    //        fileTempClearer.init();
-    //        fileTempClearer.cleanTempObjects();
+    invoke("init");
+    invoke("cleanTempObjects");
 
     verify(minioClient, never()).listObjects(any());
   }
@@ -73,8 +73,8 @@ class FileTempClearerTest {
 
     when(minioClient.listObjects(any())).thenReturn(List.of(res1, res2));
 
-    //        fileTempClearer.init();
-    //        fileTempClearer.cleanTempObjects();
+    invoke("init");
+    invoke("cleanTempObjects");
 
     verify(minioClient, times(1)).removeObject(any());
   }
@@ -83,5 +83,11 @@ class FileTempClearerTest {
     Field field = FileTempClearer.class.getDeclaredField(fieldName);
     field.setAccessible(true);
     field.set(fileTempClearer, value);
+  }
+
+  private void invoke(String methodName) throws Exception {
+    var method = FileTempClearer.class.getDeclaredMethod(methodName);
+    method.setAccessible(true);
+    method.invoke(fileTempClearer);
   }
 }
