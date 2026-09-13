@@ -92,6 +92,6 @@ First stable release of **warada_v2** — a Quarkus-based manga/comic crawler an
 ### Migration / Setup Notes
 
 1. Start infrastructure: `docker compose up -d`
-2. Create MinIO bucket `warada-images` via the MinIO console at `http://localhost:9001` (credentials: `admin` / `admin123123123123`).
+2. Initialize Garage and create the `warada-images` bucket using `docs/ai/deployment/garage.md`.
 3. Run the application: `./mvnw quarkus:dev`
 4. Liquibase migrations run automatically on startup.

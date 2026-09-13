@@ -42,10 +42,10 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 ./gradlew quarkusDev
 ```
 
-If ports like 15672 or 9001 are already occupied, add a local .devcontainer/.env file and override the exposed host ports.
+If ports like 15672 or 3900 are already occupied, add a local .devcontainer/.env file and override the exposed host ports.
 
 ## Expected local endpoints
 - App: http://localhost:8080
 - GraphQL UI: http://localhost:8080/q/graphql-ui
 - RabbitMQ UI: http://localhost:15672
-- MinIO Console: http://localhost:9001
+- Garage S3 API: http://localhost:3900

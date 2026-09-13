@@ -69,3 +69,4 @@ Build in this order:
 - The backend now lives under `backend/`.
 - The SvelteKit frontend foundation and initial reader/admin routes live under `frontend/`.
 - Frontend dependency installation and full checks remain blocked until npm registry access is available.
+- Podman is now the documented local container runtime for backend development and native builds.

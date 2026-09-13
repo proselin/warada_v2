@@ -1,0 +1,25 @@
+# WARNING: the secrets below are for local development only. Regenerate all
+# three with `openssl rand -hex 32` / `openssl rand -base64 32` before using
+# this file anywhere outside a throwaway local environment.
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "garage:3901"
+rpc_secret = "18f9bf061db2216d2b863fff408faf0386b82f5a7d3a07f1037c744a99cbc2ad"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.garage.localhost"
+index = "index.html"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "Vrh8asm0+0tIw8qnItR80r7mv18JDCnog+t8b1fcLww="
+metrics_token = "z7O9yrBeJ7BAYhuA5jtMpopkReghtiYFwRpq/8MwD4U="

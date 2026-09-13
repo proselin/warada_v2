@@ -8,7 +8,7 @@ services:
     volumes:
       - ..:/workspace:cached
       - maven-cache:/home/vscode/.m2
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${CONTAINER_SOCKET:-/run/user/1000/podman/podman.sock}:/var/run/docker.sock
     environment:
       DEV_DB_URL: jdbc:postgresql://postgres:5432/postgres
       DEV_DB_USERNAME: postgres
@@ -17,11 +17,11 @@ services:
       DEV_RABBITMQ_PORT: 5672
       DEV_RABBITMQ_USERNAME: guest
       DEV_RABBITMQ_PASSWORD: guest
-      DEV_MINIO_HOST: minio
-      DEV_MINIO_PORT: 9000
-      DEV_MINIO_ACCESS_KEY: admin
-      DEV_MINIO_SECRET_KEY: admin123123123123
-      DEV_MINIO_SECURE: "false"
+      DEV_S3_HOST: garage
+      DEV_S3_PORT: 3900
+      DEV_S3_ACCESS_KEY: warada-dev
+      DEV_S3_SECRET_KEY: a1251ed99e3e8e221af619fdbafb77cd
+      DEV_S3_SECURE: "false"
       DOCKER_HOST: unix:///var/run/docker.sock
       DOCKER_API_VERSION: "1.44"
       TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: /var/run/docker.sock
@@ -33,7 +33,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      minio:
+      garage:
         condition: service_started
 
   postgres:
@@ -68,20 +68,27 @@ services:
       timeout: 10s
       retries: 10
 
-  minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    command: server /data --console-address ":9001"
+  garage:
+    image: ${GARAGE_IMAGE:-docker.io/dxflrs/garage:v2.3.0}
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin123123123123
+      GARAGE_CONFIG_FILE: /etc/garage.toml
+      GARAGE_DEFAULT_ACCESS_KEY: warada-dev
+      GARAGE_DEFAULT_SECRET_KEY: a1251ed99e3e8e221af619fdbafb77cd
+      GARAGE_DEFAULT_BUCKET: warada-images
     ports:
-      - "${DEV_MINIO_EXPOSE_PORT:-9000}:9000"
-      - "${DEV_MINIO_CONSOLE_PORT:-9001}:9001"
+      - "${DEV_GARAGE_S3_PORT:-3900}:3900"
+      - "${DEV_GARAGE_RPC_PORT:-3901}:3901"
+      - "${DEV_GARAGE_WEB_PORT:-3902}:3902"
+      - "${DEV_GARAGE_ADMIN_PORT:-3903}:3903"
     volumes:
-      - minio-data:/data
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+      - ../garage.toml:/etc/garage.toml:ro
 
 volumes:
   maven-cache:
   postgres-data:
   rabbitmq-data:
-  minio-data:
+  garage-meta:
+  garage-data:

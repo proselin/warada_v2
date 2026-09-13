@@ -10,7 +10,7 @@ description: Phased plan for decomposing warada_v2 monolith into crawl-service, 
 
 - [ ] Milestone 1: **shared-lib** — Extract common entities, events, enums, exceptions into a standalone library
 - [ ] Milestone 2: **core-service** — Move persistence logic; consume RabbitMQ events; expose internal REST
-- [ ] Milestone 3: **crawl-service** — Move scraping, MinIO upload, SSE; publish/consume events
+- [ ] Milestone 3: **crawl-service** — Move scraping, Garage S3 upload, SSE; publish/consume events
 - [ ] Milestone 4: **display-service** — Move GraphQL API; read-only DB
 - [ ] Milestone 5: **Integration & Verification** — All three services run together and pass end-to-end smoke tests
 - [ ] Milestone 6: **Cleanup** — Remove old monolith source; update Docker Compose; update CI/CD
@@ -47,7 +47,7 @@ description: Phased plan for decomposing warada_v2 monolith into crawl-service, 
 - [ ] Task 2.9: Verify `./gradlew :core-service:build`
 
 ### Phase 3: crawl-service
-- [ ] Task 3.1: Create `crawl-service/build.gradle` with Quarkus, REST, MinIO, RabbitMQ, REST-client, shared-lib deps
+- [ ] Task 3.1: Create `crawl-service/build.gradle` with Quarkus, REST, S3-compatible storage, RabbitMQ, REST-client, shared-lib deps
 - [ ] Task 3.2: Move `NettruyenExtractorImpl` + REST client `NettruyenRestService` → crawl-service
 - [ ] Task 3.3: Move `CrawlServiceImpl` → crawl-service; replace direct repository calls with event publishing
 - [ ] Task 3.4: Create `ComicCrawlProducer` — publishes `ComicExtractedEvent`
@@ -56,9 +56,9 @@ description: Phased plan for decomposing warada_v2 monolith into crawl-service, 
 - [ ] Task 3.7: Create `CoreServiceClient` (MicroProfile REST client) — calls core-service `/internal/comics/exists`
 - [ ] Task 3.8: Move `CrawlRestResource` and SSE endpoint → crawl-service resources
 - [ ] Task 3.9: Move `FileTempClearer` scheduler → crawl-service
-- [ ] Task 3.10: Move `MinioBucketInitializer` → crawl-service
-- [ ] Task 3.11: Configure `application.yaml` for crawl-service (MinIO, RabbitMQ, core-service REST client URL)
-- [ ] Task 3.12: Write unit tests for extractor and crawl service (mock MinIO, mock producer)
+- [ ] Task 3.10: Move `S3BucketInitializer` → crawl-service
+- [ ] Task 3.11: Configure `application.yaml` for crawl-service (Garage S3, RabbitMQ, core-service REST client URL)
+- [ ] Task 3.12: Write unit tests for extractor and crawl service (mock S3 client, mock producer)
 - [ ] Task 3.13: Verify `./gradlew :crawl-service:build`
 
 ### Phase 4: display-service
@@ -74,7 +74,7 @@ description: Phased plan for decomposing warada_v2 monolith into crawl-service, 
 - [ ] Task 4.10: Verify `./gradlew :display-service:build`
 
 ### Phase 5: Integration & Verification
-- [ ] Task 5.1: Update `docker-compose.yml` to run all three services + RabbitMQ + PostgreSQL + MinIO
+- [ ] Task 5.1: Update `docker-compose.yml` to run all three services + RabbitMQ + PostgreSQL + Garage
 - [ ] Task 5.2: Add `healthcheck` to each service in Docker Compose
 - [ ] Task 5.3: Run end-to-end smoke test: trigger comic crawl → verify GraphQL returns comic data
 - [ ] Task 5.4: Verify SSE stream works across crawl-service
@@ -137,9 +137,9 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
+  garage:
+    image: docker.io/dxflrs/garage:v2.3.0
+    command: ["/garage", "server", "--single-node", "--default-bucket"]
 
   rabbitmq:
     image: rabbitmq:3-management

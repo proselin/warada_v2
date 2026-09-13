@@ -2,14 +2,14 @@
 
 ## What This Project Does
 
-**warada_v2** is a Quarkus-based backend that crawls manga/comic content from NetTruyen (an external Vietnamese comic site), stores metadata in PostgreSQL, and serves images via MinIO (S3-compatible object storage). It exposes a **GraphQL API** for reading comics/chapters and a **REST API** for triggering crawl operations.
+**warada_v2** is a Quarkus-based backend that crawls manga/comic content from NetTruyen (an external Vietnamese comic site), stores metadata in PostgreSQL, and serves images via Garage (S3-compatible object storage). It exposes a **GraphQL API** for reading comics/chapters and a **REST API** for triggering crawl operations.
 
 ## Technology Stack
 
 - **Framework**: Quarkus 3.39.3, Java 25
 - **Build Tool**: Maven (use `./backend/mvnw -f backend/pom.xml`)
 - **Database**: PostgreSQL 16 + Hibernate ORM Panache + Liquibase migrations
-- **Object Storage**: MinIO (S3-compatible, bucket: `warada-images`)
+- **Object Storage**: Garage (S3-compatible, bucket: `warada-images`)
 - **APIs**: SmallRye GraphQL (queries) + JAX-RS REST (crawl triggers) + SSE (streaming)
 - **Observability**: OpenTelemetry (traces, metrics, logs)
 - **Code generation**: Lombok
@@ -17,7 +17,7 @@
 ## Build & Run Commands
 
 ```bash
-# Start infrastructure (PostgreSQL + MinIO)
+# Start infrastructure (PostgreSQL + Garage)
 docker compose up -d
 
 # Dev mode with live reload (port 8080)
@@ -46,7 +46,7 @@ docker compose up -d
 - OpenAPI: `http://localhost:8080/q/openapi`
 - Health: `http://localhost:8080/q/health`
 
-**MinIO setup** (first-time): Open `http://localhost:9001`, login with `admin`/`admin123123123123`, create a bucket named `warada-images`.
+**Garage setup** (first-time): Follow [`docs/ai/deployment/garage.md`](../docs/ai/deployment/garage.md) to initialize the node, create the `warada` key, and create the `warada-images` bucket.
 
 ## Architecture
 
@@ -55,7 +55,7 @@ REST /api/v1/crawl  ──┐
 GraphQL /graphql    ──┤──► Services ──► Repositories ──► PostgreSQL
 SSE /sse/comic      ──┘        │
                                └──► NettruyenExtractor ──► NetTruyen (external)
-                               └──► MinIO (image storage)
+                               └──► Garage (image storage)
 ```
 
 - **`resources/`** — API layer: `*GqlResource` (GraphQL, read-only), `CrawlRestResource` (REST, crawl triggers)
@@ -64,7 +64,7 @@ SSE /sse/comic      ──┘        │
 - **`db_entities/`** — JPA entities: `Comic`, `Chapter`, `Image`, `Tag`
 - **`models/`** — DTOs as Java records (`PageRequest`, `PageResponse`, `ExtractedComicDetail`, etc.)
 - **`configurations/`** — Type-safe config via `@ConfigMapping` (`MinioConfig`, `WaradaConfig`)
-- **`scheduler/`** — `FileTempClearer`: cron job that purges stale MinIO temp files
+- **`scheduler/`** — `FileTempClearer`: cron job that purges stale S3 temp files
 - **`rest/client/`** — MicroProfile REST Client: `NettruyenRestService` (external HTTP calls)
 
 ## Key Conventions

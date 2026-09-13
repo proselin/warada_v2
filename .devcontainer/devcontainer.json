@@ -5,12 +5,12 @@
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
   "overrideCommand": false,
-  "forwardPorts": [8080, 5005, 15672, 9001],
+  "forwardPorts": [8080, 5005, 15672, 3900, 3902, 3903],
   "runServices": [
     "devcontainer",
     "postgres",
     "rabbitmq",
-    "minio"
+    "garage"
   ],
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2" : {},
@@ -25,11 +25,11 @@
     "DEV_RABBITMQ_PORT": "5672",
     "DEV_RABBITMQ_USERNAME": "guest",
     "DEV_RABBITMQ_PASSWORD": "guest",
-    "DEV_MINIO_HOST": "minio",
-    "DEV_MINIO_PORT": "9000",
-    "DEV_MINIO_ACCESS_KEY": "admin",
-    "DEV_MINIO_SECRET_KEY": "admin123123123123",
-    "DEV_MINIO_SECURE": "false"
+    "DEV_S3_HOST": "garage",
+    "DEV_S3_PORT": "3900",
+    "DEV_S3_ACCESS_KEY": "warada-dev",
+    "DEV_S3_SECRET_KEY": "a1251ed99e3e8e221af619fdbafb77cd",
+    "DEV_S3_SECURE": "false"
   },
   "customizations": {
     "vscode": {
@@ -53,5 +53,8 @@
       },
     }
   },
-  "postCreateCommand": "./backend/mvnw --version"
+  "postCreateCommand": "./backend/mvnw --version",
+  "containerEnv": {
+    "CONTAINER_HOST": "unix:///var/run/docker.sock"
+  }
 }

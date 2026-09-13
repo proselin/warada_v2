@@ -1,6 +1,6 @@
 # warada_v2
 
-Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapter images from NetTruyen, storing metadata in PostgreSQL, and serving images from MinIO.
+Warada v2 is a Quarkus-based backend for crawling manga/comic metadata and chapter images from NetTruyen, storing metadata in PostgreSQL, and serving images from Garage.
 
 ## Architecture
 
@@ -35,7 +35,7 @@ display-service reads PostgreSQL directly (read-only)
 
 - Java 25 · Quarkus 3.39.3
 - PostgreSQL 16 · Hibernate ORM Panache · Liquibase
-- MinIO (S3-compatible image storage)
+- Garage (S3-compatible image storage)
 - RabbitMQ · SmallRye Reactive Messaging
 - GraphQL (SmallRye) · REST (JAX-RS) · SSE
 
@@ -43,13 +43,33 @@ display-service reads PostgreSQL directly (read-only)
 
 ### Infrastructure
 
-Start PostgreSQL, RabbitMQ, and MinIO:
+Start PostgreSQL, RabbitMQ, and Garage:
 
 ```bash
-docker compose up -d postgres rabbitmq minio
+docker compose up -d postgres rabbitmq garage
 # or via devcontainer:
-docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
+docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq garage
 ```
+
+Podman is supported as the local container runtime, and Garage provides the
+S3-compatible object storage:
+
+```bash
+systemctl --user enable --now podman.socket
+podman-compose -f docker-compose.yml up -d
+podman-compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq garage
+```
+
+For Quarkus Dev Services and Testcontainers, expose the rootless Podman socket:
+
+```bash
+export DOCKER_HOST="unix://${XDG_RUNTIME_DIR}/podman/podman.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
+
+The dev profile selects `podman` for Quarkus container operations and native builds.
+Automatic Quarkus Dev Services and the observability LGTM container are disabled
+in dev because the Compose stack provides PostgreSQL, RabbitMQ, and Garage.
 
 ### Run individual services (dev mode with live reload)
 
@@ -66,7 +86,7 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 | `http://localhost:8081/api/v1/crawl/nettruyen/comic` | Trigger comic crawl (POST) |
 | `http://localhost:8081/q/health` | Crawl-service health |
 | `http://localhost:15672` | RabbitMQ management UI |
-| `http://localhost:9001` | MinIO console |
+| `http://localhost:3902` | Garage web endpoint |
 
 ### Preferred workflow: devcontainer
 
@@ -83,7 +103,7 @@ docker compose -f .devcontainer/docker-compose.yml up -d postgres rabbitmq minio
 # Build a specific service
 ./backend/mvnw -f backend/pom.xml -DskipTests package
 
-# Build native image (requires Docker)
+# Build native image (requires Podman or Docker)
 ./backend/mvnw -f backend/pom.xml -Pnative -Dquarkus.native.container-build=true package
 ```
 

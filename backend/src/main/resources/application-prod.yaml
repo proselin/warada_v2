@@ -19,11 +19,13 @@ quarkus:
         endpoint: ${OTLP_ENDPOINT}
 
   minio:
-    host: ${MINIO_ENDPOINT}
-    port: ${MINIO_PORT:9000}
-    access-key: ${MINIO_ACCESS_KEY}
-    secret-key: ${MINIO_SECRET_KEY}
-    secure: ${MINIO_SECURE}
+    host: ${S3_ENDPOINT}
+    port: ${S3_PORT:3900}
+    access-key: ${S3_ACCESS_KEY}
+    secret-key: ${S3_SECRET_KEY}
+    secure: ${S3_SECURE:true}
+    # Must match the Garage server's [s3_api].s3_region.
+    region: ${S3_REGION:garage}
 
   devservices:
     enabled: false

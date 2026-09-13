@@ -2,7 +2,7 @@ quarkus:
   datasource:
     db-kind: postgresql
     username: ${DEV_DB_USERNAME:postgres}
-    password: ${DEV_DB_PASSWD:postgres}
+    password: ${DEV_DB_PASSWORD:postgres}
     jdbc:
       url: ${DEV_DB_URL:jdbc:postgresql://localhost:5432/postgres}
 
@@ -14,19 +14,22 @@ quarkus:
     enabled: false
 
   minio:
-    host: ${DEV_MINIO_HOST:localhost}
-    port: ${DEV_MINIO_PORT:9000}
-    access-key: ${DEV_MINIO_ACCESS_KEY:admin}
-    secret-key: ${DEV_MINIO_SECRET_KEY:admin123123123123}
-    secure: ${DEV_MINIO_SECURE:false}
+    host: ${DEV_S3_HOST:localhost}
+    port: ${DEV_S3_PORT:3900}
+    access-key: ${DEV_S3_ACCESS_KEY:warada-dev}
+    secret-key: ${DEV_S3_SECRET_KEY:a1251ed99e3e8e221af619fdbafb77cd}
+    secure: ${DEV_S3_SECURE:false}
+    # Must match garage.toml's [s3_api].s3_region, otherwise Garage rejects
+    # requests with "AuthorizationHeaderMalformed... unexpected scope".
+    region: ${DEV_S3_REGION:garage}
 
   package:
     jar:
       enabled: true
 
-# set False if docker or podman not available
+# Podman is the default local container runtime. Disable Dev Services when no runtime is available.
   devservices:
-    enabled: true
+    enabled: false
 
   docker:
     executable-name: podman
@@ -36,7 +39,7 @@ quarkus:
 
   observability:
     lgtm:
-      enabled: true
+      enabled: false
 
 warada:
   nettruyen:

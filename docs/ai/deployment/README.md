@@ -13,17 +13,17 @@ description: Define deployment process, infrastructure, and release procedures
 | Service | Image / Version | Purpose |
 |---|---|---|
 | **PostgreSQL** | `postgres:16-alpine` | Primary database |
-| **MinIO** | `minio/minio:RELEASE.2025-01-18T00-31-37Z` | Object storage for images |
+| **Garage** | `docker.io/dxflrs/garage:v2.3.0` | S3-compatible object storage for images |
 | **Warada v2** | `ghcr.io/proselin/warada_v2:<version>-native` | Application (native image) |
 | **OTel Collector** | `opentelemetry-collector-contrib:0.140.0` | Observability (optional) |
 
 ### Environment Separation
 
-| Env | Profile | Database | MinIO | OTel | Notes |
+| Env | Profile | Database | Garage | OTel | Notes |
 |---|---|---|---|---|---|
-| **Dev** | `%dev` | Local Docker (port 5432) | Local Docker (port 9000) | Disabled | Live coding with `quarkusDev` |
-| **Test-Native** | `%test-native` | Local Docker | Local Docker | Disabled | For native image testing |
-| **Production** | `%prod` | External (env vars) | External (env vars) | Enabled | Native image in container |
+| **Dev** | `%dev` | Local container (port 5432) | Local container (port 3900) | Disabled | Live coding with `quarkusDev` |
+| **Test-Native** | `%test-native` | Local container | Local container | Disabled | For native image testing |
+| **Production** | `%prod` | External (env vars) | External (S3 env vars) | Enabled | Native image in container |
 
 ## Deployment Pipeline
 **How do we deploy changes?**
@@ -47,7 +47,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 
 #### Docker Image Build
 ```bash
-# Build native Docker image
+# Build native container image
 ./scripts/build-native.sh <version>
 
 # Build and push to GHCR
@@ -71,7 +71,7 @@ java -jar build/quarkus-app/quarkus-run.jar
 Currently manual build and push via scripts. Future CI/CD should:
 1. Run `./gradlew test` (unit + integration tests)
 2. Build native image: `./gradlew build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=true`
-3. Build Docker image: `docker build -f src/main/docker/Dockerfile.native -t ghcr.io/proselin/warada_v2:<tag>-native .`
+3. Build container image: `podman build -f backend/src/main/docker/Dockerfile.native -t ghcr.io/proselin/warada_v2:<tag>-native backend`
 4. Push to GHCR: `docker push ghcr.io/proselin/warada_v2:<tag>-native`
 
 ## Environment Configuration
@@ -83,9 +83,9 @@ quarkus.datasource.jdbc.url: jdbc:postgresql://localhost:5432/postgres
 quarkus.datasource.username: postgres
 quarkus.datasource.password: postgres
 quarkus.otel.enabled: false
-minio.endpoint: http://localhost:9000
-minio.access-key: <from MinIO console>
-minio.secret-key: <from MinIO console>
+S3 endpoint: http://localhost:3900
+S3 access key: <from Garage key create>
+S3 secret key: <from Garage key create>
 ```
 
 ### Production (`%prod` profile)
@@ -96,10 +96,10 @@ All sensitive values injected via environment variables:
 | `DB_URL` | PostgreSQL JDBC URL (e.g., `jdbc:postgresql://host:5432/db`) |
 | `DB_USERNAME` | Database username |
 | `DB_PASSWORD` | Database password |
-| `MINIO_ENDPOINT` | MinIO API URL |
-| `MINIO_ACCESS_KEY` | MinIO access key |
-| `MINIO_SECRET_KEY` | MinIO secret key |
-| `MINIO_SECURE` | `true` for HTTPS, `false` for HTTP |
+| `S3_ENDPOINT` | Garage/S3 API host |
+| `S3_ACCESS_KEY` | S3 access key |
+| `S3_SECRET_KEY` | S3 secret key |
+| `S3_SECURE` | `true` for HTTPS, `false` for HTTP |
 | `OTLP_ENDPOINT` | OpenTelemetry collector gRPC endpoint |
 
 ### Production Docker Run Example

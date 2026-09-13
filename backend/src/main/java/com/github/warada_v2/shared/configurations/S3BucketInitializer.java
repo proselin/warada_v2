@@ -10,9 +10,9 @@ import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
-public class MinioBucketInitializer {
+public class S3BucketInitializer {
 
-  private static final Logger log = Logger.getLogger(MinioBucketInitializer.class);
+  private static final Logger log = Logger.getLogger(S3BucketInitializer.class);
 
   @Inject MinioClient minioClient;
 
@@ -24,12 +24,12 @@ public class MinioBucketInitializer {
       boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
       if (!exists) {
         minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-        log.infof("Created MinIO bucket: %s", bucket);
+        log.infof("Created S3 bucket: %s", bucket);
         return;
       }
-      log.debugf("MinIO bucket already exists: %s", bucket);
+      log.debugf("S3 bucket already exists: %s", bucket);
     } catch (Exception exception) {
-      log.warnf(exception, "MinIO bucket initialization skipped for %s", bucket);
+      log.warnf(exception, "S3 bucket initialization skipped for %s", bucket);
     }
   }
 }

@@ -1,6 +1,6 @@
 # T004 — Frontend Validation
 
-**Status:** blocked
+**Status:** done
 **Created:** 2026-09-13
 **Plan:** [P001-260913-warada-sveltekit-frontend](../plans/P001-260913-warada-sveltekit-frontend.md)
 
@@ -24,4 +24,7 @@ Validate the complete frontend against the plan's quality and safety requirement
 ## 4. Work history
 
 - 2026-09-13: Task created and linked to P001.
-- 2026-09-13: Blocked because npm registry access is unavailable; dependency installation and Svelte checks could not run.
+- 2026-09-13: Dependency installation was initially blocked by npm registry access.
+- 2026-09-14: Added Playwright E2E coverage for comic browsing, comic details, chapter reading, and admin form validation with mocked API responses.
+- 2026-09-14: Svelte checks passed with 0 errors and 0 warnings, the production build passed, and all 3 Playwright E2E tests passed.
+- 2026-09-14: Frontend package management standardized on pnpm via `packageManager`.
