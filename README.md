@@ -138,3 +138,6 @@ POST /api/v1/crawl/nettruyen/comic/{slug}/retry
 - SSE progress is in-memory per crawl-service instance
 - Liquibase migrations run only in `core-service`; `display-service` connects read-only
 - Chapter crawl concurrency is configurable via RabbitMQ consumer settings in `crawl-service/src/main/resources/application.properties`
+
+## For AI
+If u are agent Please read (WORKING_PRINCIPLE)[./docs/WORKING_PRINCIPLE.md] for more info
